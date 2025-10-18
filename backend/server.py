@@ -464,9 +464,6 @@ async def get_preview_data(upload_id: str):
         total_sgst = sum((l.get("sgst_amount") or 0) for l in sales_lines)
         total_igst = sum((l.get("igst_amount") or 0) for l in sales_lines)
         
-        # AI Enhancement: Get insights
-        ai_insights = gemini_service.generate_filing_insights(sales_lines[:50])  # Limit for API
-        
         # Audit log
         audit_log = [
             f"Processed {len(sales_lines)} sales transaction lines",
