@@ -328,53 +328,55 @@ function App() {
         </Card>
 
         {/* File Upload */}
-        <Card className="mb-6 shadow-lg border-0">
-          <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50">
-            <CardTitle className="text-lg sm:text-xl">Upload Meesho Export Files</CardTitle>
-            <CardDescription>Upload Excel/CSV files or ZIP archive</CardDescription>
+        <Card className="mb-6 shadow-2xl border border-gray-800 bg-gray-900/50 backdrop-blur">
+          <CardHeader className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 border-b border-gray-800">
+            <CardTitle className="text-lg sm:text-xl text-gray-100">Upload Meesho Export Files</CardTitle>
+            <CardDescription className="text-gray-400">Upload Excel/CSV files or ZIP archive</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             <div
               className={`border-2 border-dashed rounded-lg p-8 sm:p-12 text-center transition-all ${
                 isDragging 
-                  ? "border-purple-500 bg-purple-50" 
-                  : "border-gray-300 hover:border-purple-400 hover:bg-purple-50/50"
+                  ? "border-purple-500 bg-purple-950/30" 
+                  : "border-gray-700 hover:border-purple-500/50 hover:bg-purple-950/20"
               }`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
             >
-              <Upload className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-purple-500" />
-              <p className="text-base sm:text-lg font-medium text-gray-700 mb-2">
+              <Upload className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-purple-400" />
+              <p className="text-base sm:text-lg font-medium text-gray-300 mb-2">
                 Drag and drop files here
               </p>
               <p className="text-sm text-gray-500 mb-4">or</p>
-              <label htmlFor="file-upload">
-                <Button variant="outline" className="cursor-pointer">
-                  Select Files
-                </Button>
-                <input
-                  id="file-upload"
-                  type="file"
-                  multiple
-                  accept=".xlsx,.xls,.csv,.zip"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-              </label>
-              <p className="text-xs text-gray-500 mt-4">Supported: .xlsx, .xls, .csv, .zip</p>
+              <Button 
+                variant="outline" 
+                className="cursor-pointer bg-gray-800 border-gray-700 text-gray-200 hover:bg-purple-900/50 hover:border-purple-500"
+                onClick={() => document.getElementById('file-upload').click()}
+              >
+                Select Files
+              </Button>
+              <input
+                id="file-upload"
+                type="file"
+                multiple
+                accept=".xlsx,.xls,.csv,.zip"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <p className="text-xs text-gray-600 mt-4">Supported: .xlsx, .xls, .csv, .zip</p>
             </div>
 
             {/* Selected Files */}
             {files.length > 0 && (
               <div className="mt-6 space-y-2">
-                <p className="text-sm font-medium text-gray-700">Selected Files ({files.length})</p>
+                <p className="text-sm font-medium text-gray-300">Selected Files ({files.length})</p>
                 <div className="space-y-2">
                   {files.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <FileText className="w-5 h-5 text-purple-600 flex-shrink-0" />
-                        <span className="text-sm truncate">{file.name}</span>
+                        <FileText className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                        <span className="text-sm truncate text-gray-300">{file.name}</span>
                         <span className="text-xs text-gray-500 flex-shrink-0">
                           {(file.size / 1024).toFixed(1)} KB
                         </span>
@@ -383,7 +385,7 @@ function App() {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile(index)}
-                        className="flex-shrink-0"
+                        className="flex-shrink-0 text-gray-400 hover:text-red-400 hover:bg-red-950/30"
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -394,7 +396,7 @@ function App() {
                 <Button
                   onClick={handleUpload}
                   disabled={uploading || processing}
-                  className="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  className="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg"
                 >
                   {uploading ? (
                     <>
