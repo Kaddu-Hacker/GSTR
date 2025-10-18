@@ -344,7 +344,7 @@ async def list_uploads():
                     if not k.startswith("file_content_")
                 }
         
-        return {"uploads": uploads}
+        return safe_json_response({"uploads": uploads})
         
     except Exception as e:
         logger.error(f"List uploads error: {str(e)}")
