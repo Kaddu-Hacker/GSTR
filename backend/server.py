@@ -286,11 +286,11 @@ async def generate_gstr_json(upload_id: str):
         )
         
         # Save exports
-        gstr1b_dict = gstr1b_export.model_dump()
+        gstr1b_dict = gstr1b_export.model_dump(mode='json')
         gstr1b_dict = safe_json_response(gstr1b_dict)
         await gstr_exports_collection.insert(gstr1b_dict)
         
-        gstr3b_dict = gstr3b_export.model_dump()
+        gstr3b_dict = gstr3b_export.model_dump(mode='json')
         gstr3b_dict = safe_json_response(gstr3b_dict)
         await gstr_exports_collection.insert(gstr3b_dict)
         
