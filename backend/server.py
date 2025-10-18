@@ -313,7 +313,7 @@ async def generate_gstr_json(upload_id: str):
         
         logger.info(f"Generated GSTR JSON files for upload {upload_id}")
         
-        return {
+        response_data = {
             "upload_id": upload_id,
             "gstr1b": gstr1b.model_dump(),
             "gstr3b": gstr3b.model_dump(),
@@ -323,6 +323,9 @@ async def generate_gstr_json(upload_id: str):
                 "calculation_validation": calculation_validation
             }
         }
+        
+        # Sanitize floats for JSON compatibility
+        return safe_json_response(response_data)
         
     except Exception as e:
         logger.error(f"Generation error: {str(e)}")
