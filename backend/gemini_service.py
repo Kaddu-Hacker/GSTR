@@ -165,8 +165,8 @@ Return JSON:
         try:
             # Prepare summary for AI
             total_invoices = len(invoice_data)
-            total_taxable = sum(inv.get('taxable_value', 0) for inv in invoice_data)
-            total_tax = sum(inv.get('tax_amount', 0) for inv in invoice_data)
+            total_taxable = sum((inv.get('taxable_value') or 0) for inv in invoice_data)
+            total_tax = sum((inv.get('tax_amount') or 0) for inv in invoice_data)
             
             states = set(inv.get('state_code') for inv in invoice_data if inv.get('state_code'))
             
