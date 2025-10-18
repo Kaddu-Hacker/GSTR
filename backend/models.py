@@ -109,8 +109,8 @@ class GSTR1BOutput(BaseModel):
     table14: List[Table14Entry] = []
 
 
-class GSTR3BSection31(BaseModel):
-    """GSTR-3B Section 3.1 - Outward taxable supplies"""
+class GSTR3BSection31a(BaseModel):
+    """GSTR-3B Section 3.1(a) - Outward taxable supplies (other than zero rated, nil rated and exempted)"""
     txval: float  # Taxable value
     iamt: float = 0.0  # IGST amount
     camt: float = 0.0  # CGST amount
@@ -118,11 +118,28 @@ class GSTR3BSection31(BaseModel):
     csamt: float = 0.0  # Cess amount
 
 
+class GSTR3BSection311(BaseModel):
+    """GSTR-3B Section 3.1.1(ii) - Supplies made through e-commerce operator liable to collect tax u/s 9(5)"""
+    txval: float  # Taxable value
+    iamt: float = 0.0  # IGST amount
+    camt: float = 0.0  # CGST amount
+    samt: float = 0.0  # SGST amount
+    csamt: float = 0.0  # Cess amount
+
+
+class GSTR3BSection32(BaseModel):
+    """GSTR-3B Section 3.2 - Inter-State supplies to unregistered persons"""
+    txval: float  # Taxable value
+    iamt: float = 0.0  # IGST amount
+
+
 class GSTR3BOutput(BaseModel):
-    """GSTR-3B JSON structure (simplified)"""
+    """GSTR-3B JSON structure (enhanced)"""
     gstin: str
     fp: str  # Filing period (MMYYYY)
-    section_31: GSTR3BSection31  # Outward taxable supplies
+    section_31a: GSTR3BSection31a  # Outward taxable supplies (non-ECO)
+    section_311: GSTR3BSection311  # ECO supplies
+    section_32: GSTR3BSection32  # Inter-state to unregistered
 
 
 class GSTRExport(BaseModel):
