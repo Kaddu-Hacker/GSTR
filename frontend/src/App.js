@@ -202,9 +202,10 @@ function App() {
           <AlertTitle className="text-blue-900">How it works</AlertTitle>
           <AlertDescription className="text-blue-800">
             <ol className="list-decimal list-inside space-y-1 mt-2">
-              <li>Enter your GSTIN and State Code</li>
-              <li>Upload Meesho files: tcs_sales.xlsx, tcs_sales_return.xlsx, Tax_invoice_details.xlsx (or ZIP)</li>
-              <li>Get portal-ready GSTR-1B (Tables 7, 13, 14) and GSTR-3B JSON files</li>
+              <li>Enter your business GSTIN and State Code (required for tax calculations)</li>
+              <li>Upload Meesho export files: tcs_sales.xlsx, tcs_sales_return.xlsx, Tax_invoice_details.xlsx (or ZIP)</li>
+              <li>Review the processed data breakdown before download</li>
+              <li>Download portal-ready GSTR-1B (Tables 7, 13, 14) and GSTR-3B JSON files</li>
             </ol>
           </AlertDescription>
         </Alert>
@@ -213,22 +214,32 @@ function App() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Your GST Details</CardTitle>
-            <CardDescription>Enter your business information</CardDescription>
+            <CardDescription>Required information for GST filing and tax calculations</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="gstin">Your GSTIN *</Label>
+                <Label htmlFor="gstin" className="flex items-center gap-2">
+                  Your Business GSTIN *
+                  <span className="text-xs text-slate-500 font-normal">(15-digit GST Identification Number)</span>
+                </Label>
                 <Input
                   id="gstin"
                   value={gstin}
                   onChange={(e) => setGstin(e.target.value.toUpperCase())}
                   placeholder="27AABCE1234F1Z5"
                   className="font-mono"
+                  maxLength={15}
                 />
+                <p className="text-xs text-slate-500 mt-1">
+                  Used in GSTR-1B and GSTR-3B as your business identifier
+                </p>
               </div>
               <div>
-                <Label htmlFor="stateCode">Your State Code *</Label>
+                <Label htmlFor="stateCode" className="flex items-center gap-2">
+                  Your State Code *
+                  <span className="text-xs text-slate-500 font-normal">(First 2 digits of GSTIN)</span>
+                </Label>
                 <Input
                   id="stateCode"
                   value={stateCode}
@@ -236,9 +247,15 @@ function App() {
                   placeholder="27"
                   maxLength={2}
                 />
+                <p className="text-xs text-slate-500 mt-1">
+                  Used to determine intra-state (CGST+SGST) vs inter-state (IGST) transactions
+                </p>
               </div>
               <div>
-                <Label htmlFor="filingPeriod">Filing Period (MMYYYY)</Label>
+                <Label htmlFor="filingPeriod" className="flex items-center gap-2">
+                  Filing Period
+                  <span className="text-xs text-slate-500 font-normal">(MMYYYY format)</span>
+                </Label>
                 <Input
                   id="filingPeriod"
                   value={filingPeriod}
@@ -246,8 +263,18 @@ function App() {
                   placeholder="012025"
                   maxLength={6}
                 />
+                <p className="text-xs text-slate-500 mt-1">
+                  Tax period for which you're filing (e.g., 012025 = January 2025)
+                </p>
               </div>
             </div>
+            <Alert className="mt-4 bg-amber-50 border-amber-200">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-900 text-sm">
+                <strong>E-Commerce Operator (ECO):</strong> Meesho GSTIN ({MEESHO_GSTIN}) will be used for Table 14 reporting. 
+                Your sales will be reported in both Table 7 (state-wise B2C) and Table 14 (ECO platform-wise) as per GST rules.
+              </AlertDescription>
+            </Alert>
           </CardContent>
         </Card>
 
