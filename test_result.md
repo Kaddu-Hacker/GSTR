@@ -372,10 +372,19 @@ agent_communication:
         - Response now returns only GSTR JSON files and validation warnings
         - No more "ai_insights" field in API responses
       
+      ✅ DATETIME SERIALIZATION ERROR FIXED: "Object of type datetime is not JSON serializable" resolved
+        - Enhanced json_utils.py to handle datetime and date objects
+        - Added sanitize_value() function that converts datetime to ISO format strings
+        - Updated all API endpoints to use safe_json_response() wrapper
+        - Fixed endpoints: /api/uploads, /api/upload/{id}, /api/downloads/{id}, /api/preview/{id}
+        - All datetime fields now properly serialized to ISO format (e.g., "2025-10-18T16:57:14.818302+00:00")
+      
       ✅ SERVICES VERIFIED:
         - Backend restarted successfully and running without errors
         - Frontend running correctly
         - Application UI loads properly
+        - All API endpoints tested and working
+        - Datetime serialization working correctly
         - Ready for file upload and GSTR JSON generation
       
       🎯 MAJOR FIXES COMPLETED (Oct 18, 2025):
