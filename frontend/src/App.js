@@ -463,17 +463,18 @@ function App() {
 
         {/* Preview Data */}
         {previewData && previewData.summary && (
-          <Card className="mb-6 shadow-lg border-0">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+          <Card className="mb-6 shadow-2xl border border-gray-800 bg-gray-900/50 backdrop-blur">
+            <CardHeader className="bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border-b border-gray-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg sm:text-xl">Data Summary</CardTitle>
-                  <CardDescription>Overview of processed transactions</CardDescription>
+                  <CardTitle className="text-lg sm:text-xl text-gray-100">Data Summary</CardTitle>
+                  <CardDescription className="text-gray-400">Overview of processed transactions</CardDescription>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowPreview(!showPreview)}
+                  className="text-gray-400 hover:text-gray-200"
                 >
                   {showPreview ? <ChevronUp /> : <ChevronDown />}
                 </Button>
@@ -483,35 +484,35 @@ function App() {
               <CardContent className="pt-6">
                 {/* Summary Cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                  <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
-                    <p className="text-xs sm:text-sm text-purple-700 font-medium">Transactions</p>
-                    <p className="text-xl sm:text-2xl font-bold text-purple-900">{previewData.summary.total_transactions}</p>
+                  <div className="p-4 bg-gradient-to-br from-purple-900/50 to-purple-800/30 rounded-lg border border-purple-700/30">
+                    <p className="text-xs sm:text-sm text-purple-300 font-medium">Transactions</p>
+                    <p className="text-xl sm:text-2xl font-bold text-purple-100">{previewData.summary.total_transactions}</p>
                   </div>
-                  <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-                    <p className="text-xs sm:text-sm text-blue-700 font-medium">Taxable Value</p>
-                    <p className="text-xl sm:text-2xl font-bold text-blue-900">₹{previewData.summary.total_taxable_value?.toLocaleString()}</p>
+                  <div className="p-4 bg-gradient-to-br from-blue-900/50 to-blue-800/30 rounded-lg border border-blue-700/30">
+                    <p className="text-xs sm:text-sm text-blue-300 font-medium">Taxable Value</p>
+                    <p className="text-xl sm:text-2xl font-bold text-blue-100">₹{previewData.summary.total_taxable_value?.toLocaleString()}</p>
                   </div>
-                  <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
-                    <p className="text-xs sm:text-sm text-green-700 font-medium">Total Tax</p>
-                    <p className="text-xl sm:text-2xl font-bold text-green-900">₹{previewData.summary.total_tax?.toLocaleString()}</p>
+                  <div className="p-4 bg-gradient-to-br from-green-900/50 to-green-800/30 rounded-lg border border-green-700/30">
+                    <p className="text-xs sm:text-sm text-green-300 font-medium">Total Tax</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-100">₹{previewData.summary.total_tax?.toLocaleString()}</p>
                   </div>
-                  <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
-                    <p className="text-xs sm:text-sm text-orange-700 font-medium">States</p>
-                    <p className="text-xl sm:text-2xl font-bold text-orange-900">{previewData.summary.unique_states}</p>
+                  <div className="p-4 bg-gradient-to-br from-orange-900/50 to-orange-800/30 rounded-lg border border-orange-700/30">
+                    <p className="text-xs sm:text-sm text-orange-300 font-medium">States</p>
+                    <p className="text-xl sm:text-2xl font-bold text-orange-100">{previewData.summary.unique_states}</p>
                   </div>
                 </div>
 
                 {/* AI Insights */}
                 {aiInsights && aiInsights.key_insights && (
-                  <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                  <div className="mb-6 p-4 bg-gradient-to-r from-purple-950/50 to-blue-950/50 rounded-lg border border-purple-700/30">
                     <div className="flex items-center gap-2 mb-3">
-                      <Sparkles className="w-5 h-5 text-purple-600" />
-                      <h3 className="font-semibold text-purple-900">AI Insights</h3>
+                      <Sparkles className="w-5 h-5 text-purple-400" />
+                      <h3 className="font-semibold text-purple-200">AI Insights</h3>
                     </div>
                     <ul className="space-y-2">
                       {aiInsights.key_insights.map((insight, index) => (
-                        <li key={index} className="text-sm text-purple-800 flex items-start gap-2">
-                          <span className="text-purple-600 mt-1">•</span>
+                        <li key={index} className="text-sm text-purple-300 flex items-start gap-2">
+                          <span className="text-purple-400 mt-1">•</span>
                           <span>{insight}</span>
                         </li>
                       ))}
@@ -525,7 +526,7 @@ function App() {
                     <Button
                       variant="ghost"
                       onClick={() => toggleSection('stateBreakdown')}
-                      className="w-full justify-between p-4 hover:bg-gray-50"
+                      className="w-full justify-between p-4 hover:bg-gray-800/50 text-gray-300"
                     >
                       <span className="font-medium">State-wise & Rate-wise Breakdown</span>
                       {expandedSections.stateBreakdown ? <ChevronUp /> : <ChevronDown />}
@@ -533,23 +534,23 @@ function App() {
                     {expandedSections.stateBreakdown && (
                       <div className="overflow-x-auto mt-2">
                         <table className="w-full text-sm">
-                          <thead className="bg-gray-100">
+                          <thead className="bg-gray-800 border-b border-gray-700">
                             <tr>
-                              <th className="p-3 text-left">State</th>
-                              <th className="p-3 text-left">GST Rate</th>
-                              <th className="p-3 text-right">Count</th>
-                              <th className="p-3 text-right">Taxable Value</th>
-                              <th className="p-3 text-right">Tax Amount</th>
+                              <th className="p-3 text-left text-gray-300">State</th>
+                              <th className="p-3 text-left text-gray-300">GST Rate</th>
+                              <th className="p-3 text-right text-gray-300">Count</th>
+                              <th className="p-3 text-right text-gray-300">Taxable Value</th>
+                              <th className="p-3 text-right text-gray-300">Tax Amount</th>
                             </tr>
                           </thead>
                           <tbody>
                             {previewData.breakdown.by_state_and_rate.map((item, index) => (
-                              <tr key={index} className="border-b hover:bg-gray-50">
-                                <td className="p-3">{item.state_name || item.state_code}</td>
-                                <td className="p-3">{item.gst_rate}%</td>
-                                <td className="p-3 text-right">{item.count}</td>
-                                <td className="p-3 text-right">₹{item.taxable_value?.toFixed(2)}</td>
-                                <td className="p-3 text-right">₹{item.tax_amount?.toFixed(2)}</td>
+                              <tr key={index} className="border-b border-gray-800 hover:bg-gray-800/30">
+                                <td className="p-3 text-gray-300">{item.state_name || item.state_code}</td>
+                                <td className="p-3 text-gray-300">{item.gst_rate}%</td>
+                                <td className="p-3 text-right text-gray-300">{item.count}</td>
+                                <td className="p-3 text-right text-gray-300">₹{item.taxable_value?.toFixed(2)}</td>
+                                <td className="p-3 text-right text-gray-300">₹{item.tax_amount?.toFixed(2)}</td>
                               </tr>
                             ))}
                           </tbody>
