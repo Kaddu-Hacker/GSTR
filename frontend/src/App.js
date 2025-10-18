@@ -413,6 +413,170 @@ function App() {
           </Card>
         )}
 
+        {/* Data Review/Preview Section */}
+        {previewData && (
+          <Card className="mb-6 border-2 border-blue-200 bg-blue-50">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-blue-900 flex items-center gap-2">
+                    <Eye className="h-5 w-5" />
+                    Data Review & Breakdown
+                  </CardTitle>
+                  <CardDescription className="text-blue-700">
+                    Review your processed data before generating GSTR files
+                  </CardDescription>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowPreview(!showPreview)}
+                >
+                  {showPreview ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  {showPreview ? "Hide" : "Show"} Details
+                </Button>
+              </div>
+            </CardHeader>
+            {showPreview && (
+              <CardContent>
+                {/* Summary Cards */}
+                <div className="grid md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-white p-4 rounded-lg border">
+                    <div className="text-sm text-slate-600">Total Transactions</div>
+                    <div className="text-2xl font-bold text-slate-900">
+                      {previewData.summary?.total_transactions || 0}
+                    </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border">
+                    <div className="text-sm text-slate-600">Total Taxable Value</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      ₹{(previewData.summary?.total_taxable_value || 0).toFixed(2)}
+                    </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border">
+                    <div className="text-sm text-slate-600">Total Tax</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      ₹{(previewData.summary?.total_tax || 0).toFixed(2)}
+                    </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border">
+                    <div className="text-sm text-slate-600">Unique States</div>
+                    <div className="text-2xl font-bold text-purple-600">
+                      {previewData.summary?.unique_states || 0}
+                    </div>
+                  </div>
+                </div>
+
+                {/* State-wise Breakdown */}
+                <div className="mb-4">
+                  <button
+                    onClick={() => toggleSection('stateBreakdown')}
+                    className="flex items-center justify-between w-full p-3 bg-white rounded-lg border hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span className="font-semibold">State-wise & Rate-wise Breakdown (Table 7)</span>
+                    </div>
+                    {expandedSections.stateBreakdown ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </button>
+                  {expandedSections.stateBreakdown && (
+                    <div className="mt-2 bg-white p-4 rounded-lg border">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left p-2">State</th>
+                              <th className="text-left p-2">State Code</th>
+                              <th className="text-right p-2">GST Rate</th>
+                              <th className="text-right p-2">Count</th>
+                              <th className="text-right p-2">Taxable Value</th>
+                              <th className="text-right p-2">CGST</th>
+                              <th className="text-right p-2">SGST</th>
+                              <th className="text-right p-2">IGST</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {previewData.breakdown?.by_state_and_rate?.map((item, idx) => (
+                              <tr key={idx} className="border-b hover:bg-slate-50">
+                                <td className="p-2">{item.state_name}</td>
+                                <td className="p-2 font-mono">{item.state_code}</td>
+                                <td className="p-2 text-right">{item.gst_rate}%</td>
+                                <td className="p-2 text-right">{item.count}</td>
+                                <td className="p-2 text-right font-medium">₹{item.taxable_value.toFixed(2)}</td>
+                                <td className="p-2 text-right">₹{item.cgst_amount.toFixed(2)}</td>
+                                <td className="p-2 text-right">₹{item.sgst_amount.toFixed(2)}</td>
+                                <td className="p-2 text-right">₹{item.igst_amount.toFixed(2)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Document Type Breakdown */}
+                <div className="mb-4">
+                  <button
+                    onClick={() => toggleSection('docBreakdown')}
+                    className="flex items-center justify-between w-full p-3 bg-white rounded-lg border hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-blue-600" />
+                      <span className="font-semibold">Document Issued Breakdown (Table 13)</span>
+                    </div>
+                    {expandedSections.docBreakdown ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </button>
+                  {expandedSections.docBreakdown && (
+                    <div className="mt-2 bg-white p-4 rounded-lg border">
+                      <div className="space-y-3">
+                        {previewData.breakdown?.by_document_type?.map((item, idx) => (
+                          <div key={idx} className="p-3 bg-slate-50 rounded">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-medium">{item.type}</span>
+                              <Badge>{item.count} documents</Badge>
+                            </div>
+                            <div className="text-xs text-slate-600">
+                              Invoice Numbers: {item.invoice_numbers.slice(0, 5).join(", ")}
+                              {item.invoice_numbers.length > 5 && ` ... +${item.invoice_numbers.length - 5} more`}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Audit Log */}
+                <div>
+                  <button
+                    onClick={() => toggleSection('auditLog')}
+                    className="flex items-center justify-between w-full p-3 bg-white rounded-lg border hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Info className="h-4 w-4 text-purple-600" />
+                      <span className="font-semibold">Processing Audit Log</span>
+                    </div>
+                    {expandedSections.auditLog ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </button>
+                  {expandedSections.auditLog && (
+                    <div className="mt-2 bg-white p-4 rounded-lg border">
+                      <ul className="space-y-2 text-sm">
+                        {previewData.audit_log?.map((log, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <span className="text-slate-700">{log}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        )}
+
         {/* GSTR Download */}
         {gstrData && (
           <Card className="mb-6 border-2 border-green-200 bg-green-50">
