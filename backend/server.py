@@ -337,6 +337,66 @@ async def get_downloads(upload_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/download/{upload_id}/{file_type}")
+async def download_gstr_file(upload_id: str, file_type: str):
+    """
+    Download GSTR JSON file directly (triggers browser download)
+    file_type: 'gstr1b' or 'gstr3b'
+    """
+    try:
+        # Validate file type
+        if file_type.lower() not in ['gstr1b', 'gstr3b']:
+            raise HTTPException(status_code=400, detail="Invalid file type. Use 'gstr1b' or 'gstr3b'")
+        
+        # Get the GSTR data
+        export_type = "GSTR1B" if file_type.lower() == 'gstr1b' else "GSTR3B"
+        exports = await gstr_exports_collection.find_by_upload(upload_id)
+        
+        if not exports:
+            raise HTTPException(status_code=404, detail="No exports found for this upload")
+        
+        # Find the specific export
+        export_data = None
+        for export in exports:
+            if export.get('export_type') == export_type:
+                export_data = export.get('json_data')
+                break
+        
+        if not export_data:
+            raise HTTPException(status_code=404, detail=f"{export_type} not found for this upload")
+        
+        # Get filing period for filename
+        upload_doc = await uploads_collection.find_one(upload_id)
+        filing_period = upload_doc.get('metadata', {}).get('filing_period', '012025') if upload_doc else '012025'
+        
+        # Create JSON string
+        json_string = json.dumps(export_data, indent=2)
+        
+        # Create filename
+        filename = f"{export_type}_{filing_period}.json"
+        
+        # Convert to bytes
+        json_bytes = json_string.encode('utf-8')
+        
+        # Return as streaming response with proper headers
+        return StreamingResponse(
+            BytesIO(json_bytes),
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Content-Length": str(len(json_bytes)),
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        logger.error(f"Download file error: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.get("/uploads")
 async def list_uploads():
     """
