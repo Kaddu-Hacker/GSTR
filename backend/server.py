@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
+import math
 
 # Import our custom modules
 from models import (
@@ -20,6 +21,7 @@ from parser import FileParser
 from gstr_generator import GSTRGenerator
 from supabase_client import uploads_collection, invoice_lines_collection, gstr_exports_collection
 from gemini_service import gemini_service
+from json_utils import safe_json_response
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
