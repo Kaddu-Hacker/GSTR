@@ -1,6 +1,14 @@
-# GST Filing Automation
+# \ud83d\ude80 GST Filing Automation with AI
 
-A comprehensive web application for automating GST filing for Meesho sellers. Upload Meesho export files and automatically generate portal-ready GSTR-1B and GSTR-3B JSON files.
+> **AI-Powered GST Filing** for Meesho Sellers with Gemini AI validation and Supabase database
+
+![Version](https://img.shields.io/badge/version-2.0-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.110.1-green)
+![React](https://img.shields.io/badge/React-19.0-blue)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)
+![Gemini](https://img.shields.io/badge/Gemini-AI-orange)
+
+A comprehensive web application for automating GST filing for Meesho sellers. Upload Meesho export files and automatically generate portal-ready GSTR-1B and GSTR-3B JSON files with AI-powered validation.
 
 ## Features
 
