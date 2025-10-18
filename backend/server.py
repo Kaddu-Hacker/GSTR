@@ -270,30 +270,6 @@ async def generate_gstr_json(upload_id: str):
         # Validate
         warnings = generator.validate_output(gstr1b, gstr3b)
         
-        # AI Enhancement: Use Gemini for invoice validation
-        tax_invoice_lines = [l for l in invoice_lines if l.get('file_type') == 'tax_invoice']
-        invoice_numbers = [l.get('invoice_no') for l in tax_invoice_lines if l.get('invoice_no')]
-        
-        gemini_analysis = {}
-        if invoice_numbers:
-            gemini_analysis = gemini_service.detect_missing_invoices(invoice_numbers)
-            
-            # Add AI insights to warnings
-            if gemini_analysis.get('missing_invoices'):
-                warnings.append(
-                    f"AI detected {len(gemini_analysis['missing_invoices'])} missing invoice(s) in sequence: "
-                    f"{', '.join(gemini_analysis['missing_invoices'][:5])}"
-                )
-        
-        # AI Enhancement: Validate calculations
-        summary_data = {
-            "total_taxable": sum((l.get('taxable_value') or 0) for l in invoice_lines),
-            "total_cgst": sum((l.get('cgst_amount') or 0) for l in invoice_lines),
-            "total_sgst": sum((l.get('sgst_amount') or 0) for l in invoice_lines),
-            "total_igst": sum((l.get('igst_amount') or 0) for l in invoice_lines)
-        }
-        calculation_validation = gemini_service.validate_gst_calculations(summary_data)
-        
         # Save to Supabase
         gstr1b_export = GSTRExport(
             upload_id=upload_id,
@@ -319,11 +295,7 @@ async def generate_gstr_json(upload_id: str):
             "upload_id": upload_id,
             "gstr1b": gstr1b.model_dump(),
             "gstr3b": gstr3b.model_dump(),
-            "validation_warnings": warnings,
-            "ai_insights": {
-                "invoice_analysis": gemini_analysis,
-                "calculation_validation": calculation_validation
-            }
+            "validation_warnings": warnings
         }
         
         # Sanitize floats for JSON compatibility
