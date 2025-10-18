@@ -188,7 +188,7 @@ async def process_upload(upload_id: str):
         
         # Save invoice lines to Supabase
         if all_invoice_lines:
-            invoice_docs = [line.model_dump() for line in all_invoice_lines]
+            invoice_docs = [line.model_dump(mode='json') for line in all_invoice_lines]
             # Sanitize float values to prevent JSON serialization errors
             invoice_docs = [safe_json_response(doc) for doc in invoice_docs]
             await invoice_lines_collection.insert_many(invoice_docs)
