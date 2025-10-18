@@ -566,26 +566,26 @@ function App() {
 
         {/* GSTR Download */}
         {gstrData && (
-          <Card className="mb-6 shadow-lg border-0">
-            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+          <Card className="mb-6 shadow-2xl border border-gray-800 bg-gray-900/50 backdrop-blur">
+            <CardHeader className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 border-b border-gray-800">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl text-gray-100">
+                <CheckCircle className="w-5 h-5 text-green-400" />
                 GSTR Files Ready
               </CardTitle>
-              <CardDescription>Download your GST return JSON files</CardDescription>
+              <CardDescription className="text-gray-400">Download your GST return JSON files</CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Button
                   onClick={() => downloadJSON(gstrData.gstr1b, `GSTR1B_${filingPeriod}.json`)}
-                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Download GSTR-1B
                 </Button>
                 <Button
                   onClick={() => downloadJSON(gstrData.gstr3b, `GSTR3B_${filingPeriod}.json`)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Download GSTR-3B
@@ -593,24 +593,24 @@ function App() {
               </div>
 
               {/* Summary Preview */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-semibold mb-3 text-sm">Summary</h4>
+              <div className="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                <h4 className="font-semibold mb-3 text-sm text-gray-300">Summary</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-gray-600">GSTR-1B Tables</p>
-                    <p className="font-medium">Table 7: {gstrData.gstr1b?.table7?.length || 0} entries</p>
-                    <p className="font-medium">Table 13: {gstrData.gstr1b?.table13?.length || 0} entries</p>
-                    <p className="font-medium">Table 14: {gstrData.gstr1b?.table14?.length || 0} entries</p>
+                    <p className="text-gray-500">GSTR-1B Tables</p>
+                    <p className="font-medium text-gray-300">Table 7: {gstrData.gstr1b?.table7?.length || 0} entries</p>
+                    <p className="font-medium text-gray-300">Table 13: {gstrData.gstr1b?.table13?.length || 0} entries</p>
+                    <p className="font-medium text-gray-300">Table 14: {gstrData.gstr1b?.table14?.length || 0} entries</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Total Tax</p>
-                    <p className="font-medium">
+                    <p className="text-gray-500">Total Tax</p>
+                    <p className="font-medium text-gray-300">
                       CGST: ₹{previewData?.summary?.total_cgst?.toFixed(2) || '0.00'}
                     </p>
-                    <p className="font-medium">
+                    <p className="font-medium text-gray-300">
                       SGST: ₹{previewData?.summary?.total_sgst?.toFixed(2) || '0.00'}
                     </p>
-                    <p className="font-medium">
+                    <p className="font-medium text-gray-300">
                       IGST: ₹{previewData?.summary?.total_igst?.toFixed(2) || '0.00'}
                     </p>
                   </div>
@@ -622,9 +622,9 @@ function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-12 py-6">
+      <footer className="bg-gray-900 border-t border-gray-800 mt-12 py-6">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-400">
             Made with <span className="text-red-500">♥</span> using Emergent
           </p>
         </div>
