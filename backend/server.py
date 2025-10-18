@@ -346,7 +346,7 @@ async def get_downloads(upload_id: str):
         
         return {
             "upload_id": upload_id,
-            "exports": exports
+            "exports": safe_json_response(exports)
         }
         
     except Exception as e:
