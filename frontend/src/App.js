@@ -241,10 +241,10 @@ function App() {
         
         {/* Errors */}
         {errors.length > 0 && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
+          <Alert variant="destructive" className="mb-6 bg-red-950/50 border-red-800">
+            <AlertCircle className="h-4 w-4 text-red-400" />
+            <AlertTitle className="text-red-300">Error</AlertTitle>
+            <AlertDescription className="text-red-200">
               <ul className="list-disc list-inside">
                 {errors.map((error, index) => (
                   <li key={index}>{error}</li>
@@ -256,10 +256,10 @@ function App() {
 
         {/* Warnings */}
         {warnings.length > 0 && (
-          <Alert className="mb-6 border-yellow-500 bg-yellow-50">
-            <AlertCircle className="h-4 w-4 text-yellow-600" />
-            <AlertTitle className="text-yellow-800">Validation Warnings</AlertTitle>
-            <AlertDescription className="text-yellow-700">
+          <Alert className="mb-6 border-yellow-600/50 bg-yellow-950/30">
+            <AlertCircle className="h-4 w-4 text-yellow-400" />
+            <AlertTitle className="text-yellow-300">Validation Warnings</AlertTitle>
+            <AlertDescription className="text-yellow-200">
               <ul className="list-disc list-inside">
                 {warnings.map((warning, index) => (
                   <li key={index}>{warning}</li>
@@ -270,57 +270,57 @@ function App() {
         )}
 
         {/* Configuration Form */}
-        <Card className="mb-6 shadow-lg border-0">
-          <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50">
-            <CardTitle className="text-lg sm:text-xl">Your GST Details</CardTitle>
-            <CardDescription>Enter your business information for GST filing</CardDescription>
+        <Card className="mb-6 shadow-2xl border border-gray-800 bg-gray-900/50 backdrop-blur">
+          <CardHeader className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 border-b border-gray-800">
+            <CardTitle className="text-lg sm:text-xl text-gray-100">Your GST Details</CardTitle>
+            <CardDescription className="text-gray-400">Enter your business information for GST filing</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="space-y-2">
-                <Label htmlFor="gstin" className="text-sm font-medium">Business GSTIN *</Label>
+                <Label htmlFor="gstin" className="text-sm font-medium text-gray-300">Business GSTIN *</Label>
                 <Input
                   id="gstin"
                   placeholder="27AABCE1234F1Z5"
                   value={gstin}
                   onChange={(e) => setGstin(e.target.value.toUpperCase())}
                   maxLength={15}
-                  className="font-mono"
+                  className="font-mono bg-gray-800 border-gray-700 text-gray-100 placeholder:text-gray-500 focus:border-purple-500"
                 />
                 <p className="text-xs text-gray-500">15-digit GST identification number</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="stateCode" className="text-sm font-medium">State Code *</Label>
+                <Label htmlFor="stateCode" className="text-sm font-medium text-gray-300">State Code *</Label>
                 <Input
                   id="stateCode"
                   placeholder="27"
                   value={stateCode}
                   onChange={(e) => setStateCode(e.target.value)}
                   maxLength={2}
-                  className="font-mono"
+                  className="font-mono bg-gray-800 border-gray-700 text-gray-100 placeholder:text-gray-500 focus:border-purple-500"
                 />
                 <p className="text-xs text-gray-500">First 2 digits of GSTIN (e.g., 27 for MH)</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="filingPeriod" className="text-sm font-medium">Filing Period</Label>
+                <Label htmlFor="filingPeriod" className="text-sm font-medium text-gray-300">Filing Period</Label>
                 <Input
                   id="filingPeriod"
                   placeholder="012025"
                   value={filingPeriod}
                   onChange={(e) => setFilingPeriod(e.target.value)}
                   maxLength={6}
-                  className="font-mono"
+                  className="font-mono bg-gray-800 border-gray-700 text-gray-100 placeholder:text-gray-500 focus:border-purple-500"
                 />
                 <p className="text-xs text-gray-500">Format: MMYYYY (e.g., 012025 for Jan 2025)</p>
               </div>
             </div>
 
-            <Alert className="mt-6 border-blue-200 bg-blue-50">
-              <Sparkles className="h-4 w-4 text-blue-600" />
-              <AlertTitle className="text-blue-900">E-Commerce Note</AlertTitle>
-              <AlertDescription className="text-blue-700 text-sm">
+            <Alert className="mt-6 border-blue-600/50 bg-blue-950/30">
+              <Sparkles className="h-4 w-4 text-blue-400" />
+              <AlertTitle className="text-blue-300">E-Commerce Note</AlertTitle>
+              <AlertDescription className="text-blue-200 text-sm">
                 Meesho acts as an e-commerce operator (ECO). Your sales will be reported under Meesho's GSTIN ({MEESHO_GSTIN}) as per GST regulations.
               </AlertDescription>
             </Alert>
