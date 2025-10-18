@@ -326,12 +326,33 @@ function App() {
 
             {files.length > 0 && (
               <div className="mt-4">
-                <h3 className="font-semibold mb-2">Selected Files:</h3>
-                <ul className="space-y-1">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Selected Files:</h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFiles([])}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Clear All
+                  </Button>
+                </div>
+                <ul className="space-y-2">
                   {files.map((file, index) => (
-                    <li key={index} className="text-sm text-slate-600 flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                    <li key={index} className="flex items-center justify-between p-2 bg-slate-50 rounded border">
+                      <div className="flex items-center gap-2 flex-1">
+                        <FileText className="h-4 w-4 text-slate-600" />
+                        <span className="text-sm text-slate-700">{file.name}</span>
+                        <span className="text-xs text-slate-500">({(file.size / 1024).toFixed(2)} KB)</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile(index)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <span className="text-xs">Remove</span>
+                      </Button>
                     </li>
                   ))}
                 </ul>
