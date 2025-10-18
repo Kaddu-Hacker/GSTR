@@ -185,28 +185,53 @@ function App() {
   };
 
   const downloadJSON = (data, filename) => {
-    console.log("Downloading:", filename, "Data:", data);
+    console.log("=== Download Started ===");
+    console.log("Filename:", filename);
+    console.log("Data type:", typeof data);
+    console.log("Data exists:", !!data);
     
     if (!data) {
-      console.error("No data to download");
+      console.error("ERROR: No data to download");
       setErrors(["No data available to download"]);
       return;
     }
     
     try {
+      console.log("Step 1: Converting to JSON string...");
       const jsonString = JSON.stringify(data, null, 2);
+      console.log("Step 2: JSON string length:", jsonString.length);
+      
+      console.log("Step 3: Creating blob...");
       const blob = new Blob([jsonString], { type: "application/json" });
+      console.log("Step 4: Blob size:", blob.size);
+      
+      console.log("Step 5: Creating object URL...");
       const url = URL.createObjectURL(blob);
+      console.log("Step 6: URL created:", url.substring(0, 50));
+      
+      console.log("Step 7: Creating download link...");
       const link = document.createElement("a");
       link.href = url;
       link.download = filename;
+      link.style.display = "none";
+      
+      console.log("Step 8: Appending link to document...");
       document.body.appendChild(link);
+      
+      console.log("Step 9: Triggering click...");
       link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      console.log("Download successful");
+      
+      console.log("Step 10: Cleanup...");
+      // Small delay before cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        console.log("✅ Download completed successfully!");
+      }, 100);
+      
     } catch (error) {
-      console.error("Download error:", error);
+      console.error("❌ Download error:", error);
+      console.error("Error stack:", error.stack);
       setErrors([`Download failed: ${error.message}`]);
     }
   };
