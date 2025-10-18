@@ -2,7 +2,6 @@ from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException, Query
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
@@ -19,22 +18,14 @@ from models import (
 )
 from parser import FileParser
 from gstr_generator import GSTRGenerator
+from supabase_client import uploads_collection, invoice_lines_collection, gstr_exports_collection
+from gemini_service import gemini_service
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
-# Collections
-uploads_collection = db.uploads
-invoice_lines_collection = db.invoice_lines
-gstr_exports_collection = db.gstr_exports
-
 # Create the main app without a prefix
-app = FastAPI(title="GST Filing Automation API")
+app = FastAPI(title="GST Filing Automation API with AI")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -53,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 @api_router.get("/")
 async def root():
-    return {"message": "GST Filing Automation API", "version": "1.0"}
+    return {"message": "GST Filing Automation API with AI", "version": "2.0", "features": ["Supabase", "Gemini AI"]}
 
 
 @api_router.post("/upload", response_model=UploadCreateResponse)
@@ -112,16 +103,16 @@ async def upload_files(
             file_infos.append(file_info)
             
             # Store content temporarily in upload metadata
-            # In production, use file storage (S3, etc.)
             upload.metadata[f"file_content_{f['filename']}"] = f.get("content", b"").hex()
         
         upload.files = file_infos
         
-        # Save to MongoDB
+        # Save to Supabase
         upload_dict = upload.model_dump()
         upload_dict['upload_date'] = upload_dict['upload_date'].isoformat()
+        upload_dict['files'] = [f.model_dump() for f in upload.files]
         
-        await uploads_collection.insert_one(upload_dict)
+        await uploads_collection.create(upload_dict)
         
         logger.info(f"Upload created: {upload.id}, {len(file_infos)} files detected")
         
@@ -140,20 +131,18 @@ async def upload_files(
 async def process_upload(upload_id: str):
     """
     Process uploaded files: parse, validate, and prepare for JSON generation
+    Enhanced with Gemini AI for invoice validation
     """
     try:
         # Get upload record
-        upload_doc = await uploads_collection.find_one({"id": upload_id}, {"_id": 0})
+        upload_doc = await uploads_collection.find_one(upload_id)
         if not upload_doc:
             raise HTTPException(status_code=404, detail="Upload not found")
         
         upload = Upload(**upload_doc)
         
         # Update status
-        await uploads_collection.update_one(
-            {"id": upload_id},
-            {"$set": {"status": UploadStatus.PROCESSING.value}}
-        )
+        await uploads_collection.update(upload_id, {"status": UploadStatus.PROCESSING.value})
         
         # Get metadata
         seller_state_code = upload.metadata.get("seller_state_code", "27")
@@ -171,7 +160,7 @@ async def process_upload(upload_id: str):
                 continue
             
             try:
-                # Retrieve file content from metadata (temporary storage)
+                # Retrieve file content from metadata
                 content_hex = upload.metadata.get(f"file_content_{file_info.filename}")
                 if not content_hex:
                     errors.append(f"File content not found for {file_info.filename}")
@@ -195,20 +184,18 @@ async def process_upload(upload_id: str):
                 errors.append(error_msg)
                 logger.error(error_msg)
         
-        # Save invoice lines to MongoDB
+        # Save invoice lines to Supabase
         if all_invoice_lines:
             invoice_docs = [line.model_dump() for line in all_invoice_lines]
             await invoice_lines_collection.insert_many(invoice_docs)
         
         # Update upload status
         status = UploadStatus.COMPLETED if not errors else UploadStatus.FAILED
-        await uploads_collection.update_one(
-            {"id": upload_id},
+        await uploads_collection.update(
+            upload_id,
             {
-                "$set": {
-                    "status": status.value,
-                    "processing_errors": errors
-                }
+                "status": status.value,
+                "processing_errors": errors
             }
         )
         
@@ -225,13 +212,11 @@ async def process_upload(upload_id: str):
         logger.error(f"Processing error: {str(e)}")
         
         # Update status to failed
-        await uploads_collection.update_one(
-            {"id": upload_id},
+        await uploads_collection.update(
+            upload_id,
             {
-                "$set": {
-                    "status": UploadStatus.FAILED.value,
-                    "processing_errors": [str(e)]
-                }
+                "status": UploadStatus.FAILED.value,
+                "processing_errors": [str(e)]
             }
         )
         
@@ -242,10 +227,11 @@ async def process_upload(upload_id: str):
 async def generate_gstr_json(upload_id: str):
     """
     Generate GSTR-1B and GSTR-3B JSON files
+    Enhanced with Gemini AI for validation and insights
     """
     try:
         # Get upload record
-        upload_doc = await uploads_collection.find_one({"id": upload_id}, {"_id": 0})
+        upload_doc = await uploads_collection.find_one(upload_id)
         if not upload_doc:
             raise HTTPException(status_code=404, detail="Upload not found")
         
@@ -259,11 +245,7 @@ async def generate_gstr_json(upload_id: str):
             )
         
         # Get invoice lines
-        invoice_lines_cursor = invoice_lines_collection.find(
-            {"upload_id": upload_id},
-            {"_id": 0}
-        )
-        invoice_lines = await invoice_lines_cursor.to_list(length=None)
+        invoice_lines = await invoice_lines_collection.find_by_upload(upload_id)
         
         if not invoice_lines:
             raise HTTPException(status_code=400, detail="No invoice lines found")
@@ -284,7 +266,31 @@ async def generate_gstr_json(upload_id: str):
         # Validate
         warnings = generator.validate_output(gstr1b, gstr3b)
         
-        # Save to MongoDB
+        # AI Enhancement: Use Gemini for invoice validation
+        tax_invoice_lines = [l for l in invoice_lines if l.get('file_type') == 'tax_invoice']
+        invoice_numbers = [l.get('invoice_no') for l in tax_invoice_lines if l.get('invoice_no')]
+        
+        gemini_analysis = {}
+        if invoice_numbers:
+            gemini_analysis = gemini_service.detect_missing_invoices(invoice_numbers)
+            
+            # Add AI insights to warnings
+            if gemini_analysis.get('missing_invoices'):
+                warnings.append(
+                    f"AI detected {len(gemini_analysis['missing_invoices'])} missing invoice(s) in sequence: "
+                    f"{', '.join(gemini_analysis['missing_invoices'][:5])}"
+                )
+        
+        # AI Enhancement: Validate calculations
+        summary_data = {
+            "total_taxable": sum(l.get('taxable_value', 0) for l in invoice_lines),
+            "total_cgst": sum(l.get('cgst_amount', 0) for l in invoice_lines),
+            "total_sgst": sum(l.get('sgst_amount', 0) for l in invoice_lines),
+            "total_igst": sum(l.get('igst_amount', 0) for l in invoice_lines)
+        }
+        calculation_validation = gemini_service.validate_gst_calculations(summary_data)
+        
+        # Save to Supabase
         gstr1b_export = GSTRExport(
             upload_id=upload_id,
             export_type="GSTR1B",
@@ -300,8 +306,8 @@ async def generate_gstr_json(upload_id: str):
         )
         
         # Save exports
-        await gstr_exports_collection.insert_one(gstr1b_export.model_dump())
-        await gstr_exports_collection.insert_one(gstr3b_export.model_dump())
+        await gstr_exports_collection.insert(gstr1b_export.model_dump())
+        await gstr_exports_collection.insert(gstr3b_export.model_dump())
         
         logger.info(f"Generated GSTR JSON files for upload {upload_id}")
         
@@ -309,7 +315,11 @@ async def generate_gstr_json(upload_id: str):
             "upload_id": upload_id,
             "gstr1b": gstr1b.model_dump(),
             "gstr3b": gstr3b.model_dump(),
-            "validation_warnings": warnings
+            "validation_warnings": warnings,
+            "ai_insights": {
+                "invoice_analysis": gemini_analysis,
+                "calculation_validation": calculation_validation
+            }
         }
         
     except Exception as e:
@@ -324,11 +334,7 @@ async def get_downloads(upload_id: str):
     """
     try:
         # Get exports
-        exports_cursor = gstr_exports_collection.find(
-            {"upload_id": upload_id},
-            {"_id": 0}
-        )
-        exports = await exports_cursor.to_list(length=None)
+        exports = await gstr_exports_collection.find_by_upload(upload_id)
         
         if not exports:
             raise HTTPException(status_code=404, detail="No exports found for this upload")
@@ -349,8 +355,7 @@ async def list_uploads():
     List all uploads
     """
     try:
-        uploads_cursor = uploads_collection.find({}, {"_id": 0}).sort("upload_date", -1)
-        uploads = await uploads_cursor.to_list(length=100)
+        uploads = await uploads_collection.find_all()
         
         # Clean up file content from metadata for listing
         for upload in uploads:
@@ -373,7 +378,7 @@ async def get_upload_details(upload_id: str):
     Get upload details with processing status
     """
     try:
-        upload_doc = await uploads_collection.find_one({"id": upload_id}, {"_id": 0})
+        upload_doc = await uploads_collection.find_one(upload_id)
         if not upload_doc:
             raise HTTPException(status_code=404, detail="Upload not found")
         
@@ -385,12 +390,15 @@ async def get_upload_details(upload_id: str):
             }
         
         # Get invoice lines count
-        invoice_count = await invoice_lines_collection.count_documents({"upload_id": upload_id})
+        invoice_count = await invoice_lines_collection.count(upload_id)
         upload_doc["invoice_lines_count"] = invoice_count
         
         # Get exports
-        exports_cursor = gstr_exports_collection.find({"upload_id": upload_id}, {"_id": 0, "json_data": 0})
-        exports = await exports_cursor.to_list(length=None)
+        exports = await gstr_exports_collection.find_by_upload(upload_id)
+        # Remove large json_data from list view
+        for export in exports:
+            if 'json_data' in export:
+                del export['json_data']
         upload_doc["exports"] = exports
         
         return upload_doc
@@ -405,26 +413,24 @@ async def get_preview_data(upload_id: str):
     """
     Get detailed preview data for review before download
     Shows breakdown by state, rate, document types with audit trail
+    Enhanced with AI insights
     """
     try:
         # Get upload record
-        upload_doc = await uploads_collection.find_one({"id": upload_id}, {"_id": 0})
+        upload_doc = await uploads_collection.find_one(upload_id)
         if not upload_doc:
             raise HTTPException(status_code=404, detail="Upload not found")
         
         # Get invoice lines
-        invoice_lines_cursor = invoice_lines_collection.find(
-            {"upload_id": upload_id},
-            {"_id": 0}
-        )
-        invoice_lines = await invoice_lines_cursor.to_list(length=None)
+        invoice_lines = await invoice_lines_collection.find_by_upload(upload_id)
         
         if not invoice_lines:
             return {
                 "upload_id": upload_id,
                 "summary": {},
                 "breakdown": {},
-                "audit_log": []
+                "audit_log": [],
+                "ai_insights": {}
             }
         
         # Categorize data
@@ -479,6 +485,9 @@ async def get_preview_data(upload_id: str):
         total_sgst = sum(l.get("sgst_amount", 0) for l in sales_lines)
         total_igst = sum(l.get("igst_amount", 0) for l in sales_lines)
         
+        # AI Enhancement: Get insights
+        ai_insights = gemini_service.generate_filing_insights(sales_lines[:50])  # Limit for API
+        
         # Audit log
         audit_log = [
             f"Processed {len(sales_lines)} sales transaction lines",
@@ -507,7 +516,8 @@ async def get_preview_data(upload_id: str):
                 "by_state_and_rate": list(state_breakdown.values()),
                 "by_document_type": list(doc_type_breakdown.values())
             },
-            "audit_log": audit_log
+            "audit_log": audit_log,
+            "ai_insights": ai_insights
         }
         
     except Exception as e:
@@ -526,6 +536,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+@app.on_event("startup")
+async def startup_event():
+    logger.info("GST Filing Automation API with AI - Starting up")
+    logger.info("Using Supabase for database and Gemini for AI insights")
