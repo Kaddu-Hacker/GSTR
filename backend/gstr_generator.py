@@ -164,10 +164,10 @@ class GSTRGenerator:
         total_sgst = Decimal("0")
         
         for line in sales_lines:
-            total_taxable += Decimal(str(line.get("taxable_value", 0)))
-            total_igst += Decimal(str(line.get("igst_amount", 0)))
-            total_cgst += Decimal(str(line.get("cgst_amount", 0)))
-            total_sgst += Decimal(str(line.get("sgst_amount", 0)))
+            total_taxable += Decimal(str(line.get("taxable_value") or 0))
+            total_igst += Decimal(str(line.get("igst_amount") or 0))
+            total_cgst += Decimal(str(line.get("cgst_amount") or 0))
+            total_sgst += Decimal(str(line.get("sgst_amount") or 0))
         
         # Round to 2 decimal places
         entry = Table14Entry(
