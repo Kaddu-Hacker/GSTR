@@ -380,7 +380,7 @@ async def get_upload_details(upload_id: str):
                 del export['json_data']
         upload_doc["exports"] = exports
         
-        return upload_doc
+        return safe_json_response(upload_doc)
         
     except Exception as e:
         logger.error(f"Get upload details error: {str(e)}")
