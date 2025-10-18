@@ -504,7 +504,7 @@ async def get_preview_data(upload_id: str):
             f"Document types: {list(doc_type_breakdown.keys())}"
         ]
         
-        return {
+        return safe_json_response({
             "upload_id": upload_id,
             "summary": {
                 "total_transactions": len(sales_lines),
@@ -523,7 +523,7 @@ async def get_preview_data(upload_id: str):
             },
             "audit_log": audit_log,
             "ai_insights": ai_insights
-        }
+        })
         
     except Exception as e:
         logger.error(f"Preview data error: {str(e)}")
