@@ -400,6 +400,121 @@ async def get_upload_details(upload_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/preview/{upload_id}")
+async def get_preview_data(upload_id: str):
+    """
+    Get detailed preview data for review before download
+    Shows breakdown by state, rate, document types with audit trail
+    """
+    try:
+        # Get upload record
+        upload_doc = await uploads_collection.find_one({"id": upload_id}, {"_id": 0})
+        if not upload_doc:
+            raise HTTPException(status_code=404, detail="Upload not found")
+        
+        # Get invoice lines
+        invoice_lines_cursor = invoice_lines_collection.find(
+            {"upload_id": upload_id},
+            {"_id": 0}
+        )
+        invoice_lines = await invoice_lines_cursor.to_list(length=None)
+        
+        if not invoice_lines:
+            return {
+                "upload_id": upload_id,
+                "summary": {},
+                "breakdown": {},
+                "audit_log": []
+            }
+        
+        # Categorize data
+        sales_lines = [l for l in invoice_lines if l.get("file_type") in ["tcs_sales", "tcs_sales_return"]]
+        invoice_docs = [l for l in invoice_lines if l.get("file_type") == "tax_invoice"]
+        
+        # Build state-wise breakdown
+        state_breakdown = {}
+        for line in sales_lines:
+            state_code = line.get("state_code", "Unknown")
+            gst_rate = line.get("gst_rate", 0)
+            key = f"{state_code}_{gst_rate}"
+            
+            if key not in state_breakdown:
+                state_breakdown[key] = {
+                    "state_code": state_code,
+                    "state_name": line.get("end_customer_state_new", "Unknown"),
+                    "gst_rate": gst_rate,
+                    "is_intra_state": line.get("is_intra_state", False),
+                    "count": 0,
+                    "taxable_value": 0,
+                    "cgst_amount": 0,
+                    "sgst_amount": 0,
+                    "igst_amount": 0,
+                    "tax_amount": 0
+                }
+            
+            state_breakdown[key]["count"] += 1
+            state_breakdown[key]["taxable_value"] += line.get("taxable_value", 0)
+            state_breakdown[key]["cgst_amount"] += line.get("cgst_amount", 0)
+            state_breakdown[key]["sgst_amount"] += line.get("sgst_amount", 0)
+            state_breakdown[key]["igst_amount"] += line.get("igst_amount", 0)
+            state_breakdown[key]["tax_amount"] += line.get("tax_amount", 0)
+        
+        # Build document type breakdown
+        doc_type_breakdown = {}
+        for line in invoice_docs:
+            doc_type = line.get("invoice_type", "Invoice")
+            if doc_type not in doc_type_breakdown:
+                doc_type_breakdown[doc_type] = {
+                    "type": doc_type,
+                    "count": 0,
+                    "invoice_numbers": []
+                }
+            doc_type_breakdown[doc_type]["count"] += 1
+            doc_type_breakdown[doc_type]["invoice_numbers"].append(line.get("invoice_no"))
+        
+        # Calculate totals
+        total_taxable = sum(l.get("taxable_value", 0) for l in sales_lines)
+        total_tax = sum(l.get("tax_amount", 0) for l in sales_lines)
+        total_cgst = sum(l.get("cgst_amount", 0) for l in sales_lines)
+        total_sgst = sum(l.get("sgst_amount", 0) for l in sales_lines)
+        total_igst = sum(l.get("igst_amount", 0) for l in sales_lines)
+        
+        # Audit log
+        audit_log = [
+            f"Processed {len(sales_lines)} sales transaction lines",
+            f"Processed {len(invoice_docs)} invoice document entries",
+            f"Total Taxable Value: ₹{total_taxable:.2f}",
+            f"Total Tax: ₹{total_tax:.2f} (CGST: ₹{total_cgst:.2f}, SGST: ₹{total_sgst:.2f}, IGST: ₹{total_igst:.2f})",
+            f"Unique states found: {len(set(l.get('state_code') for l in sales_lines if l.get('state_code')))}",
+            f"Unique GST rates: {sorted(set(l.get('gst_rate') for l in sales_lines if l.get('gst_rate') is not None))}",
+            f"Document types: {list(doc_type_breakdown.keys())}"
+        ]
+        
+        return {
+            "upload_id": upload_id,
+            "summary": {
+                "total_transactions": len(sales_lines),
+                "total_documents": len(invoice_docs),
+                "total_taxable_value": round(total_taxable, 2),
+                "total_tax": round(total_tax, 2),
+                "total_cgst": round(total_cgst, 2),
+                "total_sgst": round(total_sgst, 2),
+                "total_igst": round(total_igst, 2),
+                "unique_states": len(set(l.get('state_code') for l in sales_lines if l.get('state_code'))),
+                "unique_rates": sorted(set(l.get('gst_rate') for l in sales_lines if l.get('gst_rate') is not None))
+            },
+            "breakdown": {
+                "by_state_and_rate": list(state_breakdown.values()),
+                "by_document_type": list(doc_type_breakdown.values())
+            },
+            "audit_log": audit_log
+        }
+        
+    except Exception as e:
+        logger.error(f"Preview data error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
