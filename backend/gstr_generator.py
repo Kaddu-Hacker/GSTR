@@ -30,6 +30,10 @@ class GSTRGenerator:
         """
         Generate Table 7 (B2C Others) - Unregistered buyers, invoice value <= 12.5L
         Group by state_code and gst_rate
+        
+        IMPORTANT: ECO supplies should be reported in Table 14, not Table 7.
+        However, per IRIS GST guidance, ECO supplies that appear in Table 14
+        are ALSO included in Table 7 as normal B2C supplies.
         """
         # Filter only sales (exclude tax invoice entries)
         sales_lines = [
