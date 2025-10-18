@@ -62,6 +62,10 @@ function App() {
     setFiles(selectedFiles);
   };
 
+  const removeFile = (indexToRemove) => {
+    setFiles(prevFiles => prevFiles.filter((_, index) => index !== indexToRemove));
+  };
+
   const handleUpload = async () => {
     if (files.length === 0) {
       setErrors(["Please select files to upload"]);
