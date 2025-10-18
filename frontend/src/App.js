@@ -367,7 +367,7 @@ function App() {
 
             <Button
               onClick={handleUpload}
-              disabled={files.length === 0 || uploading || processing || !gstin || !stateCode}
+              disabled={files.length === 0 || uploading || processing || !gstin.trim() || !stateCode.trim()}
               className="w-full mt-4"
             >
               {uploading || processing ? (
