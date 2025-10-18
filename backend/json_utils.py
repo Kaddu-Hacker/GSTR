@@ -25,7 +25,7 @@ def sanitize_value(value: Any) -> Any:
 
 def sanitize_dict(data: dict) -> dict:
     """
-    Recursively sanitize all float values in a dictionary
+    Recursively sanitize all values in a dictionary
     """
     if not isinstance(data, dict):
         return data
@@ -35,18 +35,18 @@ def sanitize_dict(data: dict) -> dict:
         if isinstance(value, dict):
             result[key] = sanitize_dict(value)
         elif isinstance(value, list):
-            result[key] = [sanitize_dict(item) if isinstance(item, dict) else sanitize_float(item) for item in value]
+            result[key] = [sanitize_dict(item) if isinstance(item, dict) else sanitize_value(item) for item in value]
         else:
-            result[key] = sanitize_float(value)
+            result[key] = sanitize_value(value)
     
     return result
 
 def safe_json_response(data: Any) -> dict:
     """
-    Prepare data for JSON response by sanitizing floats
+    Prepare data for JSON response by sanitizing all values
     """
     if isinstance(data, dict):
         return sanitize_dict(data)
     elif isinstance(data, list):
-        return [sanitize_dict(item) if isinstance(item, dict) else sanitize_float(item) for item in data]
+        return [sanitize_dict(item) if isinstance(item, dict) else sanitize_value(item) for item in data]
     return data
