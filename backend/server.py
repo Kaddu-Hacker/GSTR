@@ -408,8 +408,7 @@ async def get_preview_data(upload_id: str):
                 "upload_id": upload_id,
                 "summary": {},
                 "breakdown": {},
-                "audit_log": [],
-                "ai_insights": {}
+                "audit_log": []
             }
         
         # Categorize data
