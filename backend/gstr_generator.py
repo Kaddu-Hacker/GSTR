@@ -244,10 +244,10 @@ class GSTRGenerator:
         interstate_igst = Decimal("0")
         
         for line in sales_lines:
-            taxable = Decimal(str(line.get("taxable_value", 0)))
-            igst = Decimal(str(line.get("igst_amount", 0)))
-            cgst = Decimal(str(line.get("cgst_amount", 0)))
-            sgst = Decimal(str(line.get("sgst_amount", 0)))
+            taxable = Decimal(str(line.get("taxable_value") or 0))
+            igst = Decimal(str(line.get("igst_amount") or 0))
+            cgst = Decimal(str(line.get("cgst_amount") or 0))
+            sgst = Decimal(str(line.get("sgst_amount") or 0))
             
             # All go to ECO section
             eco_taxable += taxable
