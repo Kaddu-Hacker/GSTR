@@ -17,7 +17,7 @@
 
 The application is already configured and running in supervisor. Just access:
 
-**Frontend**: https://file-upload-patch.preview.emergentagent.com
+**Frontend**: https://typeerror-fix.preview.emergentagent.com
 
 ### 3. Test the Application
 
@@ -148,7 +148,7 @@ CORS_ORIGINS=*
 
 ### Frontend (`/app/frontend/.env`)
 ```env
-REACT_APP_BACKEND_URL=https://file-upload-patch.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://typeerror-fix.preview.emergentagent.com
 ```
 
 ---
