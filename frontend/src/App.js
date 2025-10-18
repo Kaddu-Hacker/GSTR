@@ -72,8 +72,13 @@ function App() {
       return;
     }
 
-    if (!gstin || !stateCode) {
-      setErrors(["Please enter your GSTIN and State Code"]);
+    if (!gstin || gstin.trim().length < 15) {
+      setErrors(["Please enter a valid 15-digit GSTIN"]);
+      return;
+    }
+
+    if (!stateCode || stateCode.trim().length !== 2) {
+      setErrors(["Please enter a valid 2-digit State Code"]);
       return;
     }
 
@@ -82,6 +87,7 @@ function App() {
     setWarnings([]);
     setUploadId(null);
     setGstrData(null);
+    setPreviewData(null);
 
     try {
       const formData = new FormData();
