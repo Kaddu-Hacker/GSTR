@@ -307,7 +307,9 @@ async def generate_gstr_json(upload_id: str):
         return safe_json_response(response_data)
         
     except Exception as e:
+        import traceback
         logger.error(f"Generation error: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
