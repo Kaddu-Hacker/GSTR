@@ -208,13 +208,21 @@ def clean_numeric_value(value) -> Optional[float]:
     try:
         # If already a number
         if isinstance(value, (int, float)):
-            return float(value)
+            result = float(value)
+            # Check for NaN or Infinity
+            if not math.isfinite(result):
+                return None
+            return result
         
         # If string, clean it
         if isinstance(value, str):
             # Remove currency symbols, commas, spaces
             cleaned = value.replace(",", "").replace("₹", "").replace("Rs", "").strip()
-            return float(cleaned)
+            result = float(cleaned)
+            # Check for NaN or Infinity
+            if not math.isfinite(result):
+                return None
+            return result
         
         return None
     except (ValueError, TypeError):
