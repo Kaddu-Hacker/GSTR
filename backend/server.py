@@ -110,9 +110,9 @@ async def upload_files(
         upload.files = file_infos
         
         # Save to Supabase
-        upload_dict = upload.model_dump()
-        upload_dict['upload_date'] = upload_dict['upload_date'].isoformat()
-        upload_dict['files'] = [f.model_dump() for f in upload.files]
+        upload_dict = upload.model_dump(mode='json')
+        upload_dict['upload_date'] = upload_dict['upload_date'].isoformat() if hasattr(upload_dict['upload_date'], 'isoformat') else upload_dict['upload_date']
+        upload_dict['files'] = [f.model_dump(mode='json') for f in upload.files]
         
         await uploads_collection.create(upload_dict)
         
