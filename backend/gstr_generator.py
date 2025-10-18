@@ -72,7 +72,13 @@ class GSTRGenerator:
     def generate_table13(self, invoice_lines: List[Dict]) -> List[Table13Entry]:
         """
         Generate Table 13 (Documents Issued)
-        Analyze invoice serial ranges
+        Analyze invoice serial ranges grouped by document type
+        
+        Includes:
+        - Invoices for outward supply
+        - Credit Notes (returns)
+        - Debit Notes
+        - Delivery Challans (if any)
         """
         # Filter tax invoice entries
         invoice_entries = [
@@ -84,24 +90,50 @@ class GSTRGenerator:
         if not invoice_entries:
             return []
         
-        # Extract invoice numbers
-        invoice_numbers = [line["invoice_no"] for line in invoice_entries]
+        # Group by invoice_type if available
+        type_groups = {}
+        for line in invoice_entries:
+            doc_type = line.get("invoice_type", "Invoice")
+            if doc_type not in type_groups:
+                type_groups[doc_type] = []
+            type_groups[doc_type].append(line["invoice_no"])
         
-        # Detect ranges
-        ranges = detect_invoice_ranges(invoice_numbers)
-        
-        # Create Table 13 entries
+        # Create Table 13 entries for each document type
         table13_entries = []
-        for range_data in ranges:
-            entry = Table13Entry(
-                doc_type="Invoices for outward supply",
-                doc_num=range_data["found_count"],
-                doc_from=range_data["doc_from"],
-                doc_to=range_data["doc_to"],
-                total_count=range_data["found_count"],
-                cancelled=range_data["missing_count"]
-            )
-            table13_entries.append(entry)
+        
+        for doc_type, invoice_numbers in type_groups.items():
+            # Detect ranges for this type
+            ranges = detect_invoice_ranges(invoice_numbers)
+            
+            for range_data in ranges:
+                # Map document type to GST standard nomenclature
+                if "credit" in doc_type.lower():
+                    gst_doc_type = "Credit Notes"
+                elif "debit" in doc_type.lower():
+                    gst_doc_type = "Debit Notes"
+                elif "challan" in doc_type.lower() or "delivery" in doc_type.lower():
+                    gst_doc_type = "Delivery Challans"
+                else:
+                    gst_doc_type = "Invoices for outward supply"
+                
+                entry = Table13Entry(
+                    doc_type=gst_doc_type,
+                    doc_num=range_data["found_count"],
+                    doc_from=range_data["doc_from"],
+                    doc_to=range_data["doc_to"],
+                    total_count=range_data["found_count"],
+                    cancelled=range_data["missing_count"]
+                )
+                table13_entries.append(entry)
+        
+        # Sort by document type for consistency
+        sort_order = {
+            "Invoices for outward supply": 1,
+            "Credit Notes": 2,
+            "Debit Notes": 3,
+            "Delivery Challans": 4
+        }
+        table13_entries.sort(key=lambda x: (sort_order.get(x.doc_type, 99), x.doc_from))
         
         return table13_entries
     
