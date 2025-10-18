@@ -352,7 +352,32 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: |
-      GST Filing Automation application - CRITICAL BUG FIXES COMPLETED (Oct 18, 2025)!
+      GST Filing Automation application - JSON DOWNLOAD FIX IN PROGRESS (Oct 18, 2025 - 17:35)!
+      
+      🔧 CURRENT FIX:
+      ✅ PYDANTIC MODEL_DUMP FIX: Fixed all model_dump() calls to use mode='json'
+        - Issue: Pydantic v2 model_dump() without mode='json' may return non-JSON-serializable objects
+        - Fixed files: /app/backend/server.py (6 locations)
+        - Changed model_dump() to model_dump(mode='json') for:
+          * Upload objects (line 113)
+          * File info objects (line 115)
+          * Invoice line objects (line 191)
+          * GSTR1B export objects (lines 277, 289, 301)
+          * GSTR3B export objects (lines 284, 293, 302)
+        - Backend restarted and tested successfully
+        - API response verified to be valid JSON
+      
+      ✅ ENHANCED DOWNLOAD FUNCTION: Added comprehensive logging and improved error handling
+        - File: /app/frontend/src/App.js
+        - Added step-by-step console logging (10 steps)
+        - Added setTimeout for cleanup to prevent premature removal
+        - Added detailed error logging with stack traces
+        - This will help identify if the issue is in the download function itself
+      
+      🎯 TESTING NEEDED:
+      - User needs to test the download buttons again
+      - Check browser console for detailed logs
+      - Verify both GSTR-1B and GSTR-3B downloads work
       
       🎯 LATEST FIXES (Oct 18, 2025 - 16:56):
       ✅ NONE VALUE ERROR FIXED: "unsupported operand type(s) for +: 'int' and 'NoneType'" resolved
