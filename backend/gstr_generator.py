@@ -164,8 +164,16 @@ class GSTRGenerator:
     
     def generate_gstr3b(self, invoice_lines: List[Dict]) -> GSTR3BOutput:
         """
-        Generate GSTR-3B JSON (simplified)
-        Section 3.1 - Outward taxable supplies (other than zero-rated, nil rated and exempted)
+        Generate GSTR-3B JSON with proper section mapping
+        
+        Section 3.1(a): Outward taxable supplies (other than zero-rated, nil-rated, exempted)
+                        - Normal B2C supplies (non-ECO)
+        
+        Section 3.1.1(ii): Supplies made through ECO where supplier reports
+                           - All Meesho sales go here as ECO collects TCS
+        
+        Section 3.2: Inter-state supplies to unregistered persons
+                     - Subset of 3.1(a) that are inter-state
         """
         # Filter sales lines
         sales_lines = [
@@ -176,37 +184,77 @@ class GSTRGenerator:
         
         if not sales_lines:
             # Return zero values
-            section_31 = GSTR3BSection31(txval=0.0)
+            section_31a = GSTR3BSection31a(txval=0.0)
+            section_311 = GSTR3BSection311(txval=0.0)
+            section_32 = GSTR3BSection32(txval=0.0)
+            
             return GSTR3BOutput(
                 gstin=self.gstin,
                 fp=self.filing_period,
-                section_31=section_31
+                section_31a=section_31a,
+                section_311=section_311,
+                section_32=section_32
             )
         
-        # Aggregate totals
-        total_taxable = Decimal("0")
-        total_igst = Decimal("0")
-        total_cgst = Decimal("0")
-        total_sgst = Decimal("0")
+        # Since ALL sales are through Meesho (ECO), they ALL go to Section 3.1.1(ii)
+        # Section 3.1(a) would be for non-ECO sales (none in this case)
+        
+        # Aggregate totals for ECO supplies (Section 3.1.1(ii))
+        eco_taxable = Decimal("0")
+        eco_igst = Decimal("0")
+        eco_cgst = Decimal("0")
+        eco_sgst = Decimal("0")
+        
+        # Aggregate inter-state supplies (Section 3.2)
+        interstate_taxable = Decimal("0")
+        interstate_igst = Decimal("0")
         
         for line in sales_lines:
-            total_taxable += Decimal(str(line.get("taxable_value", 0)))
-            total_igst += Decimal(str(line.get("igst_amount", 0)))
-            total_cgst += Decimal(str(line.get("cgst_amount", 0)))
-            total_sgst += Decimal(str(line.get("sgst_amount", 0)))
+            taxable = Decimal(str(line.get("taxable_value", 0)))
+            igst = Decimal(str(line.get("igst_amount", 0)))
+            cgst = Decimal(str(line.get("cgst_amount", 0)))
+            sgst = Decimal(str(line.get("sgst_amount", 0)))
+            
+            # All go to ECO section
+            eco_taxable += taxable
+            eco_igst += igst
+            eco_cgst += cgst
+            eco_sgst += sgst
+            
+            # If inter-state (IGST > 0), also count in Section 3.2
+            if line.get("is_intra_state") == False:
+                interstate_taxable += taxable
+                interstate_igst += igst
         
         # Round to 2 decimal places
-        section_31 = GSTR3BSection31(
-            txval=float(total_taxable.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
-            iamt=float(total_igst.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
-            camt=float(total_cgst.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
-            samt=float(total_sgst.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+        # Section 3.1(a) - No non-ECO sales in this case
+        section_31a = GSTR3BSection31a(
+            txval=0.0,
+            iamt=0.0,
+            camt=0.0,
+            samt=0.0
+        )
+        
+        # Section 3.1.1(ii) - All ECO supplies
+        section_311 = GSTR3BSection311(
+            txval=float(eco_taxable.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
+            iamt=float(eco_igst.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
+            camt=float(eco_cgst.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
+            samt=float(eco_sgst.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+        )
+        
+        # Section 3.2 - Inter-state to unregistered
+        section_32 = GSTR3BSection32(
+            txval=float(interstate_taxable.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
+            iamt=float(interstate_igst.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
         )
         
         gstr3b = GSTR3BOutput(
             gstin=self.gstin,
             fp=self.filing_period,
-            section_31=section_31
+            section_31a=section_31a,
+            section_311=section_311,
+            section_32=section_32
         )
         
         return gstr3b
