@@ -268,10 +268,10 @@ def group_by_state_and_rate(invoice_lines: List[Dict]) -> Dict[Tuple[str, float]
             }
         
         # Aggregate using Decimal for precision
-        groups[key]["taxable_value"] += Decimal(str(line.get("taxable_value", 0)))
-        groups[key]["cgst_amount"] += Decimal(str(line.get("cgst_amount", 0)))
-        groups[key]["sgst_amount"] += Decimal(str(line.get("sgst_amount", 0)))
-        groups[key]["igst_amount"] += Decimal(str(line.get("igst_amount", 0)))
+        groups[key]["taxable_value"] += Decimal(str(line.get("taxable_value") or 0))
+        groups[key]["cgst_amount"] += Decimal(str(line.get("cgst_amount") or 0))
+        groups[key]["sgst_amount"] += Decimal(str(line.get("sgst_amount") or 0))
+        groups[key]["igst_amount"] += Decimal(str(line.get("igst_amount") or 0))
         groups[key]["count"] += 1
     
     # Convert Decimal back to float with rounding
