@@ -486,11 +486,11 @@ async def get_preview_data(upload_id: str):
             doc_type_breakdown[doc_type]["invoice_numbers"].append(line.get("invoice_no"))
         
         # Calculate totals
-        total_taxable = sum(l.get("taxable_value", 0) for l in sales_lines)
-        total_tax = sum(l.get("tax_amount", 0) for l in sales_lines)
-        total_cgst = sum(l.get("cgst_amount", 0) for l in sales_lines)
-        total_sgst = sum(l.get("sgst_amount", 0) for l in sales_lines)
-        total_igst = sum(l.get("igst_amount", 0) for l in sales_lines)
+        total_taxable = sum((l.get("taxable_value") or 0) for l in sales_lines)
+        total_tax = sum((l.get("tax_amount") or 0) for l in sales_lines)
+        total_cgst = sum((l.get("cgst_amount") or 0) for l in sales_lines)
+        total_sgst = sum((l.get("sgst_amount") or 0) for l in sales_lines)
+        total_igst = sum((l.get("igst_amount") or 0) for l in sales_lines)
         
         # AI Enhancement: Get insights
         ai_insights = gemini_service.generate_filing_insights(sales_lines[:50])  # Limit for API
