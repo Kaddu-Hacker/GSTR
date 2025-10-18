@@ -492,8 +492,7 @@ async def get_preview_data(upload_id: str):
                 "by_state_and_rate": list(state_breakdown.values()),
                 "by_document_type": list(doc_type_breakdown.values())
             },
-            "audit_log": audit_log,
-            "ai_insights": ai_insights
+            "audit_log": audit_log
         })
         
     except Exception as e:
