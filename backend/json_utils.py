@@ -1,18 +1,26 @@
 """
-Custom JSON encoder to handle special float values (NaN, Infinity)
+Custom JSON encoder to handle special float values (NaN, Infinity) and datetime objects
 """
 import json
 import math
 from typing import Any
+from datetime import datetime, date
 
-def sanitize_float(value: Any) -> Any:
+def sanitize_value(value: Any) -> Any:
     """
-    Convert NaN and Infinity to None for JSON compatibility
+    Convert non-JSON-serializable values to JSON-compatible types
+    - NaN and Infinity to None
+    - datetime to ISO format string
+    - date to ISO format string
     """
     if isinstance(value, float):
         if math.isnan(value) or math.isinf(value):
             return None
         return value
+    elif isinstance(value, datetime):
+        return value.isoformat()
+    elif isinstance(value, date):
+        return value.isoformat()
     return value
 
 def sanitize_dict(data: dict) -> dict:
