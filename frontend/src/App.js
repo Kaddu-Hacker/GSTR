@@ -141,9 +141,28 @@ function App() {
       const response = await axios.post(`${API}/generate/${generateId}`);
       setGstrData(response.data);
       setWarnings(response.data.validation_warnings || []);
+      
+      // Fetch preview data
+      await fetchPreviewData(generateId);
     } catch (error) {
       setErrors([error.response?.data?.detail || "Generation failed"]);
     }
+  };
+
+  const fetchPreviewData = async (id) => {
+    try {
+      const response = await axios.get(`${API}/preview/${id}`);
+      setPreviewData(response.data);
+    } catch (error) {
+      console.error("Failed to fetch preview data:", error);
+    }
+  };
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
   };
 
   const handleDownload = (type) => {
