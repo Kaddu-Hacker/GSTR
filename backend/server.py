@@ -466,11 +466,11 @@ async def get_preview_data(upload_id: str):
                 }
             
             state_breakdown[key]["count"] += 1
-            state_breakdown[key]["taxable_value"] += line.get("taxable_value", 0)
-            state_breakdown[key]["cgst_amount"] += line.get("cgst_amount", 0)
-            state_breakdown[key]["sgst_amount"] += line.get("sgst_amount", 0)
-            state_breakdown[key]["igst_amount"] += line.get("igst_amount", 0)
-            state_breakdown[key]["tax_amount"] += line.get("tax_amount", 0)
+            state_breakdown[key]["taxable_value"] += (line.get("taxable_value") or 0)
+            state_breakdown[key]["cgst_amount"] += (line.get("cgst_amount") or 0)
+            state_breakdown[key]["sgst_amount"] += (line.get("sgst_amount") or 0)
+            state_breakdown[key]["igst_amount"] += (line.get("igst_amount") or 0)
+            state_breakdown[key]["tax_amount"] += (line.get("tax_amount") or 0)
         
         # Build document type breakdown
         doc_type_breakdown = {}
