@@ -21,13 +21,14 @@ def get_connection_params():
     parsed = urlparse(SUPABASE_URL)
     project_ref = parsed.hostname.split('.')[0]
     
-    # Supabase connection parameters
+    # Try direct connection first
     return {
-        'host': f'aws-0-us-east-1.pooler.supabase.com',
-        'port': 6543,
+        'host': f'db.{project_ref}.supabase.co',
+        'port': 5432,
         'database': 'postgres',
-        'user': f'postgres.{project_ref}',
-        'password': DB_PASSWORD
+        'user': 'postgres',
+        'password': DB_PASSWORD,
+        'sslmode': 'require'
     }
 
 def run_migration():
