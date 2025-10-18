@@ -354,6 +354,30 @@ agent_communication:
     message: |
       GST Filing Automation application - CRITICAL BUG FIXES COMPLETED (Oct 18, 2025)!
       
+      🎯 LATEST FIXES (Oct 18, 2025 - 16:56):
+      ✅ NONE VALUE ERROR FIXED: "unsupported operand type(s) for +: 'int' and 'NoneType'" resolved
+        - Fixed all sum() operations to handle None values: Changed from .get('key', 0) to (.get('key') or 0)
+        - Fixed all += operations to handle None values in aggregations
+        - Fixed Decimal() conversions to handle None values properly
+        - Updated files:
+          * /app/backend/server.py: Lines 290-294, 469-473, 489-493
+          * /app/backend/gstr_generator.py: Lines 167-170, 247-250
+          * /app/backend/utils.py: Lines 271-274
+          * /app/backend/gemini_service.py: Lines 168-169
+        - All numeric aggregations now properly convert None to 0 before calculations
+      
+      ✅ AI INSIGHTS REMOVED: User requested removal of AI insights
+        - Removed Gemini AI invoice analysis from /api/generate/{upload_id}
+        - Removed Gemini AI filing insights from /api/preview/{upload_id}
+        - Response now returns only GSTR JSON files and validation warnings
+        - No more "ai_insights" field in API responses
+      
+      ✅ SERVICES VERIFIED:
+        - Backend restarted successfully and running without errors
+        - Frontend running correctly
+        - Application UI loads properly
+        - Ready for file upload and GSTR JSON generation
+      
       🎯 MAJOR FIXES COMPLETED (Oct 18, 2025):
       ✅ THEME CHANGED TO BLACK/DARK: Complete UI redesign with modern dark theme
         - Background: Black/dark gray gradient (from-gray-950 via-gray-900 to-black)
