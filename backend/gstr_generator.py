@@ -7,7 +7,9 @@ from models import (
     Table14Entry,
     GSTR1BOutput,
     GSTR3BOutput,
-    GSTR3BSection31
+    GSTR3BSection31a,
+    GSTR3BSection311,
+    GSTR3BSection32
 )
 from utils import group_by_state_and_rate, detect_invoice_ranges
 
