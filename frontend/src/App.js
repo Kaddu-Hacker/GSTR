@@ -182,16 +182,30 @@ function App() {
   };
 
   const downloadJSON = (data, filename) => {
-    const jsonString = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    console.log("Downloading:", filename, "Data:", data);
+    
+    if (!data) {
+      console.error("No data to download");
+      setErrors(["No data available to download"]);
+      return;
+    }
+    
+    try {
+      const jsonString = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      console.log("Download successful");
+    } catch (error) {
+      console.error("Download error:", error);
+      setErrors([`Download failed: ${error.message}`]);
+    }
   };
 
   const toggleSection = (section) => {
