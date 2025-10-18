@@ -333,13 +333,14 @@ function App() {
             {files.length > 0 && (
               <div className="mt-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">Selected Files:</h3>
+                  <h3 className="font-semibold">Selected Files ({files.length}):</h3>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setFiles([])}
-                    className="text-red-600 hover:text-red-700"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
+                    <X className="h-3 w-3 mr-1" />
                     Clear All
                   </Button>
                 </div>
@@ -355,9 +356,9 @@ function App() {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile(index)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-2"
                       >
-                        <span className="text-xs">Remove</span>
+                        <X className="h-4 w-4" />
                       </Button>
                     </li>
                   ))}
