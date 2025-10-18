@@ -166,6 +166,8 @@ function App() {
       const response = await axios.post(`${API}/generate/${generateId}`);
       const data = response.data;
       
+      console.log("Generated GSTR data:", data);
+      
       setGstrData(data);
       
       if (data.validation_warnings && data.validation_warnings.length > 0) {
@@ -177,6 +179,7 @@ function App() {
       }
       
     } catch (error) {
+      console.error("Generation error:", error);
       setErrors([error.response?.data?.detail || error.message || "Generation failed"]);
     }
   };
