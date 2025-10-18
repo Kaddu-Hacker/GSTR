@@ -274,14 +274,14 @@ async def generate_gstr_json(upload_id: str):
         gstr1b_export = GSTRExport(
             upload_id=upload_id,
             export_type="GSTR1B",
-            json_data=gstr1b.model_dump(),
+            json_data=gstr1b.model_dump(mode='json'),
             validation_warnings=warnings
         )
         
         gstr3b_export = GSTRExport(
             upload_id=upload_id,
             export_type="GSTR3B",
-            json_data=gstr3b.model_dump(),
+            json_data=gstr3b.model_dump(mode='json'),
             validation_warnings=warnings
         )
         
