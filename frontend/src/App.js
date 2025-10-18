@@ -201,38 +201,60 @@ function App() {
       const jsonString = JSON.stringify(data, null, 2);
       console.log("Step 2: JSON string length:", jsonString.length);
       
-      console.log("Step 3: Creating blob...");
-      const blob = new Blob([jsonString], { type: "application/json" });
-      console.log("Step 4: Blob size:", blob.size);
+      // Method 1: Try using data URL (more compatible with some environments)
+      console.log("Step 3: Creating data URL...");
+      const dataStr = "data:application/json;charset=utf-8," + encodeURIComponent(jsonString);
       
-      console.log("Step 5: Creating object URL...");
-      const url = URL.createObjectURL(blob);
-      console.log("Step 6: URL created:", url.substring(0, 50));
-      
-      console.log("Step 7: Creating download link...");
+      console.log("Step 4: Creating download link...");
       const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
+      link.setAttribute("href", dataStr);
+      link.setAttribute("download", filename);
       link.style.display = "none";
       
-      console.log("Step 8: Appending link to document...");
+      console.log("Step 5: Appending link to document...");
       document.body.appendChild(link);
       
-      console.log("Step 9: Triggering click...");
+      console.log("Step 6: Triggering click with user interaction simulation...");
+      // Force click with multiple attempts
       link.click();
       
-      console.log("Step 10: Cleanup...");
-      // Small delay before cleanup
+      // Try alternative click methods
+      if (link.dispatchEvent) {
+        const clickEvent = new MouseEvent('click', {
+          view: window,
+          bubbles: true,
+          cancelable: true
+        });
+        link.dispatchEvent(clickEvent);
+      }
+      
+      console.log("Step 7: Cleanup...");
       setTimeout(() => {
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        console.log("✅ Download completed successfully!");
-      }, 100);
+        try {
+          document.body.removeChild(link);
+          console.log("✅ Download completed successfully!");
+          console.log("📁 Check your browser's download folder for:", filename);
+        } catch (cleanupError) {
+          console.log("Cleanup note:", cleanupError.message);
+        }
+      }, 500);
       
     } catch (error) {
       console.error("❌ Download error:", error);
       console.error("Error stack:", error.stack);
       setErrors([`Download failed: ${error.message}`]);
+      
+      // Fallback: Open in new window
+      console.log("Attempting fallback method...");
+      try {
+        const jsonString = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        console.log("✅ Opened in new tab as fallback");
+      } catch (fallbackError) {
+        console.error("Fallback also failed:", fallbackError);
+      }
     }
   };
 
