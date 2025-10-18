@@ -404,12 +404,12 @@ async def get_preview_data(upload_id: str):
         invoice_lines = await invoice_lines_collection.find_by_upload(upload_id)
         
         if not invoice_lines:
-            return {
+            return safe_json_response({
                 "upload_id": upload_id,
                 "summary": {},
                 "breakdown": {},
                 "audit_log": []
-            }
+            })
         
         # Categorize data
         sales_lines = [l for l in invoice_lines if l.get("file_type") in ["tcs_sales", "tcs_sales_return"]]
