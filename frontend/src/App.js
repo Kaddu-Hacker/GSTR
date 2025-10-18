@@ -202,32 +202,32 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+      <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50 shadow-xl">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center shadow-lg">
                 <FileText className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
                   GST Filing Automation
                 </h1>
-                <p className="text-xs sm:text-sm text-gray-600">Powered by AI</p>
+                <p className="text-xs sm:text-sm text-gray-400">Powered by AI</p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
-              <Badge variant="outline" className="gap-1">
+              <Badge variant="outline" className="gap-1 border-purple-500/30 text-purple-300 bg-purple-950/30">
                 <Sparkles className="w-3 h-3" />
                 Gemini AI
               </Badge>
-              <Badge variant="outline" className="gap-1">
+              <Badge variant="outline" className="gap-1 border-blue-500/30 text-blue-300 bg-blue-950/30">
                 <Database className="w-3 h-3" />
                 Supabase
               </Badge>
-              <Badge variant="outline" className="gap-1">
+              <Badge variant="outline" className="gap-1 border-green-500/30 text-green-300 bg-green-950/30">
                 <Zap className="w-3 h-3" />
                 E-Commerce
               </Badge>
