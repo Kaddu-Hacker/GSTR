@@ -106,7 +106,12 @@ class GSTRGenerator:
     def generate_table14(self, invoice_lines: List[Dict]) -> List[Table14Entry]:
         """
         Generate Table 14 (Supplies through E-Commerce Operator)
-        All Meesho sales are ECO supplies
+        All Meesho sales are ECO supplies with TCS collected by ECO
+        
+        Table 14(a): Supplies through ECO where ECO collects TCS
+        Table 14(b): Supplies where ECO is liable to pay tax u/s 9(5) (rare for goods)
+        
+        For most Meesho sellers, all supplies go to 14(a) as Meesho collects TCS.
         """
         # Filter sales lines only
         sales_lines = [
@@ -118,7 +123,7 @@ class GSTRGenerator:
         if not sales_lines:
             return []
         
-        # Aggregate all ECO supplies
+        # Aggregate all ECO supplies (14(a) - ECO collects TCS)
         total_taxable = Decimal("0")
         total_igst = Decimal("0")
         total_cgst = Decimal("0")
@@ -132,7 +137,7 @@ class GSTRGenerator:
         
         # Round to 2 decimal places
         entry = Table14Entry(
-            eco_gstin=self.eco_gstin,
+            eco_gstin=self.eco_gstin,  # Meesho GSTIN: 07AARCM9332R1CQ
             txval=float(total_taxable.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
             iamt=float(total_igst.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
             camt=float(total_cgst.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
