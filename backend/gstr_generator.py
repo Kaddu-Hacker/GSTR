@@ -266,43 +266,57 @@ class GSTRGenerator:
         """
         warnings = []
         
-        # Calculate GSTR-1B totals
-        gstr1b_taxable = sum(entry.txval for entry in gstr1b.table7)
-        gstr1b_igst = sum(entry.iamt for entry in gstr1b.table7)
-        gstr1b_cgst = sum(entry.camt for entry in gstr1b.table7)
-        gstr1b_sgst = sum(entry.samt for entry in gstr1b.table7)
+        # Calculate GSTR-1B totals (Table 7)
+        gstr1b_table7_taxable = sum(entry.txval for entry in gstr1b.table7)
+        gstr1b_table7_igst = sum(entry.iamt for entry in gstr1b.table7)
+        gstr1b_table7_cgst = sum(entry.camt for entry in gstr1b.table7)
+        gstr1b_table7_sgst = sum(entry.samt for entry in gstr1b.table7)
         
-        # Compare with GSTR-3B
-        gstr3b_taxable = gstr3b.section_31.txval
-        gstr3b_igst = gstr3b.section_31.iamt
-        gstr3b_cgst = gstr3b.section_31.camt
-        gstr3b_sgst = gstr3b.section_31.samt
+        # Calculate GSTR-1B Table 14 totals (ECO supplies)
+        gstr1b_table14_taxable = sum(entry.txval for entry in gstr1b.table14)
+        gstr1b_table14_igst = sum(entry.iamt for entry in gstr1b.table14)
+        gstr1b_table14_cgst = sum(entry.camt for entry in gstr1b.table14)
+        gstr1b_table14_sgst = sum(entry.samt for entry in gstr1b.table14)
         
-        # Check differences (allow 0.01 tolerance for rounding)
+        # Compare Table 14 with GSTR-3B Section 3.1.1(ii) - should match
+        gstr3b_eco_taxable = gstr3b.section_311.txval
+        gstr3b_eco_igst = gstr3b.section_311.iamt
+        gstr3b_eco_cgst = gstr3b.section_311.camt
+        gstr3b_eco_sgst = gstr3b.section_311.samt
+        
+        # Check differences (allow 0.02 tolerance for rounding)
         tolerance = 0.02
         
-        if abs(gstr1b_taxable - gstr3b_taxable) > tolerance:
+        # Validate Table 14 matches Section 3.1.1(ii)
+        if abs(gstr1b_table14_taxable - gstr3b_eco_taxable) > tolerance:
             warnings.append(
-                f"Taxable value mismatch: GSTR-1B Table 7 = {gstr1b_taxable:.2f}, "
-                f"GSTR-3B = {gstr3b_taxable:.2f}"
+                f"ECO supplies mismatch: GSTR-1B Table 14 = ₹{gstr1b_table14_taxable:.2f}, "
+                f"GSTR-3B Section 3.1.1(ii) = ₹{gstr3b_eco_taxable:.2f}"
             )
         
-        if abs(gstr1b_igst - gstr3b_igst) > tolerance:
+        if abs(gstr1b_table14_igst - gstr3b_eco_igst) > tolerance:
             warnings.append(
-                f"IGST mismatch: GSTR-1B Table 7 = {gstr1b_igst:.2f}, "
-                f"GSTR-3B = {gstr3b_igst:.2f}"
+                f"ECO IGST mismatch: Table 14 = ₹{gstr1b_table14_igst:.2f}, "
+                f"Section 3.1.1(ii) = ₹{gstr3b_eco_igst:.2f}"
             )
         
-        if abs(gstr1b_cgst - gstr3b_cgst) > tolerance:
+        if abs(gstr1b_table14_cgst - gstr3b_eco_cgst) > tolerance:
             warnings.append(
-                f"CGST mismatch: GSTR-1B Table 7 = {gstr1b_cgst:.2f}, "
-                f"GSTR-3B = {gstr3b_cgst:.2f}"
+                f"ECO CGST mismatch: Table 14 = ₹{gstr1b_table14_cgst:.2f}, "
+                f"Section 3.1.1(ii) = ₹{gstr3b_eco_cgst:.2f}"
             )
         
-        if abs(gstr1b_sgst - gstr3b_sgst) > tolerance:
+        if abs(gstr1b_table14_sgst - gstr3b_eco_sgst) > tolerance:
             warnings.append(
-                f"SGST mismatch: GSTR-1B Table 7 = {gstr1b_sgst:.2f}, "
-                f"GSTR-3B = {gstr3b_sgst:.2f}"
+                f"ECO SGST mismatch: Table 14 = ₹{gstr1b_table14_sgst:.2f}, "
+                f"Section 3.1.1(ii) = ₹{gstr3b_eco_sgst:.2f}"
+            )
+        
+        # Validate Table 7 matches Table 14 (per IRIS GST, ECO supplies appear in both)
+        if abs(gstr1b_table7_taxable - gstr1b_table14_taxable) > tolerance:
+            warnings.append(
+                f"Note: Table 7 (₹{gstr1b_table7_taxable:.2f}) and Table 14 (₹{gstr1b_table14_taxable:.2f}) "
+                f"should match as ECO supplies are reported in both tables"
             )
         
         # Check for empty tables
@@ -314,5 +328,12 @@ class GSTRGenerator:
         
         if not gstr1b.table14:
             warnings.append("Table 14 (ECO Supplies) is empty")
+        
+        # Check Section 3.2 is subset of inter-state supplies
+        if gstr3b.section_32.txval > gstr3b_eco_taxable + tolerance:
+            warnings.append(
+                f"Section 3.2 inter-state (₹{gstr3b.section_32.txval:.2f}) exceeds "
+                f"total ECO supplies (₹{gstr3b_eco_taxable:.2f})"
+            )
         
         return warnings
