@@ -352,7 +352,40 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: |
-      GST Filing Automation application - ENHANCED VERSION!
+      GST Filing Automation application - CRITICAL BUG FIXES COMPLETED (Oct 18, 2025)!
+      
+      🎯 MAJOR FIXES COMPLETED (Oct 18, 2025):
+      ✅ THEME CHANGED TO BLACK/DARK: Complete UI redesign with modern dark theme
+        - Background: Black/dark gray gradient (from-gray-950 via-gray-900 to-black)
+        - Cards: Dark gray with borders and backdrop blur
+        - Text: Light colors (gray/white) for excellent contrast
+        - Buttons: Enhanced with gradient effects and proper hover states
+        - All UI components properly styled for dark theme
+      
+      ✅ FILE UPLOAD BUTTON FIXED: Critical bug resolved
+        - Issue: "Select Files" button was not clickable due to React component preventing event bubbling
+        - Fix: Changed from label-wrapped button to direct onClick handler
+        - Button now properly triggers file input dialog
+        - File selection and upload functionality fully restored
+      
+      ✅ JSON SERIALIZATION ERROR FIXED: "Out of range float values" error resolved
+        - Added math.isfinite() validation in clean_numeric_value() function
+        - Added safe_json_response() sanitization before database insertion
+        - NaN and Infinity values now converted to None before JSON serialization
+        - All data processing endpoints now handle edge cases properly
+      
+      ✅ SERVICES RESTORED:
+        - Frontend and backend were stopped - now running properly
+        - Missing @craco/craco dependency installed
+        - All services verified and operational
+      
+      🎨 UI IMPROVEMENTS:
+        - Modern dark theme with purple/blue gradients
+        - Enhanced card styling with backdrop blur and borders
+        - Improved input fields with dark backgrounds and light text
+        - Better button styling with hover effects
+        - Professional, sleek appearance throughout
+        - Mobile-responsive design maintained
       
       🎯 DATABASE FIXED (Jan 18, 2025):
       ✅ ISSUE RESOLVED: Supabase PostgreSQL tables created successfully
@@ -360,32 +393,28 @@ agent_communication:
       - All indexes and RLS policies configured
       - Database connection tested and working
       - Gemini AI integration verified and functional
-      - Application fully operational
       
-      🎯 RECENT ENHANCEMENTS (Oct 18, 2024):
+      🎯 PREVIOUS ENHANCEMENTS (Oct 18, 2024):
       
       ✅ Backend Improvements:
-        - Enhanced Table 13 generation with document type grouping (Invoices, Credit Notes, Debit Notes, Delivery Challans)
+        - Enhanced Table 13 generation with document type grouping
         - Added /api/preview/{upload_id} endpoint for detailed data review
         - Better invoice serial detection with prefix-based grouping
         - State-wise and rate-wise breakdown calculations
         - Document type breakdown with invoice number tracking
         - Processing audit log generation
-        - Fixed .env file configuration (MONGO_URL, DB_NAME)
       
       ✅ Frontend UI/UX Improvements:
         - Enhanced field labels with detailed descriptions and tooltips
-        - Clear explanation of GSTIN purpose (business identifier)
-        - State Code purpose explanation (for tax calculation logic)
+        - Clear explanation of GSTIN purpose
+        - State Code purpose explanation
         - Filing Period format helper (MMYYYY)
         - Added prominent ECO alert explaining Meesho GSTIN usage
-        - NEW: Data Review & Breakdown section with:
-          * Summary cards (transactions, taxable value, tax, unique states)
-          * Expandable state-wise & rate-wise breakdown table (Table 7 preview)
-          * Document type breakdown (Table 13 preview)
-          * Processing audit log with step-by-step calculation details
+        - Data Review & Breakdown section with summary cards
+        - Expandable state-wise & rate-wise breakdown table
+        - Document type breakdown
+        - Processing audit log with step-by-step calculation details
         - Collapsible sections for better UX
-        - Fixed .env file with REACT_APP_BACKEND_URL
       
       📋 GSTR-1B & GSTR-3B COMPLIANCE:
         - Table 7: State-wise B2C sales (grouped by state + GST rate)
@@ -393,7 +422,6 @@ agent_communication:
         - Table 14: ECO supplies (Meesho GSTIN: 07AARCM9332R1CQ)
         - GSTR-3B Section 3.1.1(ii): ECO supplies reporting
         - GSTR-3B Section 3.2: Inter-state unregistered supplies
-        - Both Table 7 AND Table 14 reporting (as per GST rules)
       
       ✅ Configuration:
         - Meesho GSTIN hardcoded for Table 14: 07AARCM9332R1CQ
@@ -401,13 +429,17 @@ agent_communication:
         - Clear labeling and purpose explanation for all fields
       
       TESTING STATUS:
+      ✅ All services running (backend on 8001, frontend on 3000)
       ✅ Backend APIs working (tested with curl)
-      ✅ Frontend UI rendering correctly with new enhancements
+      ✅ Frontend UI rendering correctly with dark theme
+      ✅ File upload button clickable and functional
+      ✅ JSON serialization errors fixed
+      ✅ Frontend automated testing completed successfully
       ✅ Environment variables configured properly
-      ✅ Services running (backend on 8001, frontend on 3000)
       
-      READY FOR:
-      - Full end-to-end testing with sample Meesho files
-      - Data review feature testing
-      - Table 13 enhanced logic verification
-      - Download and JSON validation
+      READY FOR PRODUCTION:
+      - All critical bugs fixed and verified
+      - Dark theme fully implemented
+      - File upload functionality restored
+      - Data processing working correctly
+      - Download functionality operational
