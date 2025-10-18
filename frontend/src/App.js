@@ -422,22 +422,22 @@ function App() {
 
         {/* Upload Details */}
         {uploadDetails && uploadDetails.files && (
-          <Card className="mb-6 shadow-lg border-0">
-            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+          <Card className="mb-6 shadow-2xl border border-gray-800 bg-gray-900/50 backdrop-blur">
+            <CardHeader className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 border-b border-gray-800">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl text-gray-100">
+                <CheckCircle className="w-5 h-5 text-green-400" />
                 Upload Successful
               </CardTitle>
-              <CardDescription>Files detected and classified</CardDescription>
+              <CardDescription className="text-gray-400">Files detected and classified</CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-3">
                 {uploadDetails.files.map((file, index) => (
-                  <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg gap-3">
+                  <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 gap-3">
                     <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
-                      <FileText className="w-5 h-5 text-purple-600 flex-shrink-0 mt-1 sm:mt-0" />
+                      <FileText className="w-5 h-5 text-purple-400 flex-shrink-0 mt-1 sm:mt-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{file.filename}</p>
+                        <p className="text-sm font-medium truncate text-gray-300">{file.filename}</p>
                         {file.row_count && (
                           <p className="text-xs text-gray-500">{file.row_count} rows</p>
                         )}
@@ -446,12 +446,12 @@ function App() {
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <Badge 
                         variant={file.detected ? "default" : "secondary"}
-                        className={file.detected ? "bg-green-600" : ""}
+                        className={file.detected ? "bg-green-600 hover:bg-green-700" : "bg-gray-700"}
                       >
                         {file.file_type}
                       </Badge>
                       {file.detected && (
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-4 h-4 text-green-400" />
                       )}
                     </div>
                   </div>
