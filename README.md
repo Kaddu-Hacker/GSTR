@@ -10,6 +10,25 @@
 
 A comprehensive web application for automating GST filing for Meesho sellers. Upload Meesho export files and automatically generate portal-ready GSTR-1B and GSTR-3B JSON files with AI-powered validation.
 
+## \u2728 New in Version 2.0
+
+### AI Features
+- \ud83e\udde0 **Gemini AI Integration**: Smart invoice validation and insights
+- \ud83d\udd0d **Missing Invoice Detection**: AI automatically finds gaps in invoice sequences
+- \u2705 **GST Validation**: AI-powered verification of tax calculations
+- \ud83d\udca1 **Smart Insights**: Get recommendations for better compliance
+
+### Modern UI/UX
+- \ud83c\udf08 **Beautiful Gradients**: Eye-catching design with smooth animations
+- \ud83d\udcf1 **Fully Responsive**: Perfect experience on all devices
+- \u26a1 **Enhanced Download**: Fixed download button with better error handling
+- \ud83c\udfad **Interactive Elements**: Smooth transitions and hover effects
+
+### Technical Upgrades
+- \ud83d\udce6 **Supabase Database**: Replaced MongoDB with PostgreSQL
+- \ud83d\ude80 **Netlify Ready**: Complete deployment configuration included
+- \ud83d\udd12 **Better Security**: Environment-based configuration
+
 ## Features
 
 ### Core Functionality
