@@ -15,12 +15,12 @@ from utils import group_by_state_and_rate, detect_invoice_ranges
 class GSTRGenerator:
     """Generate GSTR-1B and GSTR-3B JSON outputs"""
     
-    def __init__(self, gstin: str, filing_period: str, eco_gstin: str = "29AABCE1234F1Z5"):
+    def __init__(self, gstin: str, filing_period: str, eco_gstin: str = "07AARCM9332R1CQ"):
         """
         Args:
             gstin: Seller's GSTIN
             filing_period: Filing period in MMYYYY format (e.g., "012025" for Jan 2025)
-            eco_gstin: E-commerce operator GSTIN (Meesho)
+            eco_gstin: E-commerce operator GSTIN (Meesho: 07AARCM9332R1CQ)
         """
         self.gstin = gstin
         self.filing_period = filing_period
