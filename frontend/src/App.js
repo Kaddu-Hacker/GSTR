@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import "@/App.css";
 import axios from "axios";
-import { Upload, FileText, Download, AlertCircle, Loader2, Info } from "lucide-react";
+import { Upload, FileText, Download, AlertCircle, Loader2, Info, CheckCircle, Eye, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,8 +24,15 @@ function App() {
   const [uploadId, setUploadId] = useState(null);
   const [uploadDetails, setUploadDetails] = useState(null);
   const [gstrData, setGstrData] = useState(null);
+  const [previewData, setPreviewData] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
   const [errors, setErrors] = useState([]);
   const [warnings, setWarnings] = useState([]);
+  const [expandedSections, setExpandedSections] = useState({
+    stateBreakdown: false,
+    docBreakdown: false,
+    auditLog: false
+  });
   
   // User inputs
   const [gstin, setGstin] = useState("");
