@@ -318,10 +318,10 @@ async def get_downloads(upload_id: str):
         if not exports:
             raise HTTPException(status_code=404, detail="No exports found for this upload")
         
-        return {
+        return safe_json_response({
             "upload_id": upload_id,
-            "exports": safe_json_response(exports)
-        }
+            "exports": exports
+        })
         
     except Exception as e:
         logger.error(f"Download error: {str(e)}")
