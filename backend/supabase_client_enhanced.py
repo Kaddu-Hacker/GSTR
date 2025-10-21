@@ -166,8 +166,12 @@ class SupabaseUploads:
     @staticmethod
     async def create(upload_data: dict, user_id: str = None):
         """Create new upload record"""
+        # Set user_id to default if not provided (backward compatibility)
         if user_id:
             upload_data['user_id'] = user_id
+        else:
+            # Use default UUID for backward compatibility
+            upload_data['user_id'] = '00000000-0000-0000-0000-000000000001'
         result = supabase_admin.table('uploads').insert(upload_data).execute()
         return result.data[0] if result.data else None
     
