@@ -352,7 +352,110 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: |
-      🎉 COMPLETE SUPABASE INTEGRATION FINISHED (Latest Update)!
+      🚀 COMPREHENSIVE GSTR-1 OVERHAUL WITH OFFICIAL SCHEMAS & DEEP GEMINI AI (Oct 21, 2025 - Latest)!
+      
+      ✅ COMPLETE OFFICIAL GSTR-1 IMPLEMENTATION:
+        - Created official GST portal schemas (gstr1_official_schemas.py)
+        - ALL GSTR-1 tables with exact field names and structure:
+          * B2B (Table 4) - Registered buyers with ctin, inv, inum, idt, val, pos, rchrg, inv_typ, itms
+          * B2CL (Table 5) - Large B2C invoices > 2.5L
+          * B2CS (Table 7) - Small B2C invoices aggregated by state + rate
+          * CDNR (Table 9A) - Credit/Debit notes to registered
+          * CDNUR (Table 9B) - Credit/Debit notes to unregistered
+          * EXP (Table 6A) - Export invoices with sbpcode, sbnum, sbdt
+          * AT (Table 11A) - Advances received
+          * ATADJ (Table 11B) - Advance adjustments
+          * HSN (Table 12) - HSN/SAC summary (MANDATORY, rate-wise)
+          * DOC_ISS (Table 13) - Documents issued (MANDATORY from May 2025)
+          * EXEMP (Table 8) - Nil rated/exempted/non-GST supplies
+          * All amendments: B2BA, B2CLA, B2CSA, CDNRA, CDNURA, EXPA, ATADJA
+        - Date format: DD-MM-YYYY (GST portal standard)
+        - Field naming exactly matching official format
+        - Complete validation rules and constants
+        
+      ✅ DEEP GEMINI AI INTEGRATION EVERYWHERE:
+        - Created GeminiGSTR1Generator (gstr1_gemini_complete_generator.py)
+        - AI-powered invoice classification into correct GSTR-1 sections
+        - Intelligent supply type detection (INTRA/INTER)
+        - Reverse charge determination
+        - Invoice type classification (R/SEWP/SEWOP/DE/CBW)
+        - HSN code validation and enrichment
+        - Filing insights and recommendations
+        - Compliance scoring
+        - Missing invoice detection
+        - Data quality checks
+        - Smart error detection and suggestions
+        
+      ✅ DUAL FORMAT SUPPORT:
+        - GST Portal API format (for direct upload via API)
+        - Offline tool compatible format
+        - Both formats generated from same data
+        
+      ✅ VALIDATION RULES IMPLEMENTED:
+        - GSTIN: 15 characters
+        - State code: 2 digits
+        - Invoice number: max 16 characters
+        - B2CL threshold: ₹2,50,000
+        - HSN digits by turnover (2/4/6/8 digits)
+        - Mandatory tables: B2B, B2CL, B2CS, HSN, DOC_ISS
+        - UQC codes validation
+        - Date format validation
+        - Reverse charge values (Y/N)
+        - Supply types (INTRA/INTER)
+        
+      ✅ BACKEND ENHANCEMENTS:
+        - Integrated GeminiGSTR1Generator into server.py
+        - Updated /api/generate endpoint to use new generator
+        - Gemini API key configured (Emergent LLM key)
+        - All dependencies installed (google-generativeai, python-dotenv)
+        - Requirements.txt updated
+        - .env file created with API keys
+        
+      📋 FILES CREATED/UPDATED:
+        Backend:
+        - /app/backend/gstr1_official_schemas.py (NEW - Complete official schemas)
+        - /app/backend/gstr1_gemini_complete_generator.py (NEW - AI-powered generator)
+        - /app/backend/.env (CREATED - with Gemini API key)
+        - /app/backend/.env.example (CREATED - template)
+        - /app/backend/server.py (UPDATED - using new generator)
+        - /app/backend/requirements.txt (UPDATED - added dependencies)
+        
+      🎯 WHAT THIS FIXES:
+        - No more grey out download button (proper GSTR-1 generation)
+        - Data will be properly prepared with official format
+        - All GSTR-1 tables covered comprehensively
+        - AI-powered intelligent classification
+        - Portal-compliant JSON format
+        - Validation at every step
+        
+      🔧 TECHNICAL DETAILS:
+        - Research: Extensive web search on official GST portal specs
+        - Official schemas: Based on GST portal 2024-2025 specifications
+        - Field structure: Exact match with offline tool format
+        - Validation: Complete rule-based + AI-powered validation
+        - Classification: Gemini AI with fallback to rule-based
+        - HSN validation: AI-powered enrichment and verification
+        
+      📊 SUPPORTED SCENARIOS:
+        - Meesho sellers (B2C focus)
+        - Registered buyers (B2B invoices)
+        - Export invoices
+        - Credit/Debit notes
+        - Advances and adjustments
+        - Nil rated/exempted supplies
+        - Mixed invoice types in single upload
+        
+      ⚡ PERFORMANCE:
+        - Gemini Flash model for fast processing
+        - Fallback to rule-based if AI unavailable
+        - Efficient aggregation for B2CS and HSN
+        - Optimized classification logic
+        
+      ✅ READY FOR USER TESTING
+      
+      ---
+      
+      🎉 COMPLETE SUPABASE INTEGRATION FINISHED (Previous Update)!
       
       ✅ SUPABASE AUTHENTICATION:
         - Email/Password authentication implemented
