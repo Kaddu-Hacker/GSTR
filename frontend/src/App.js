@@ -280,16 +280,16 @@ function App() {
             </div>
             <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
               <Badge variant="outline" className="gap-1 border-purple-500/30 text-purple-300 bg-purple-950/30">
-                <Sparkles className="w-3 h-3" />
-                Gemini AI
+                <MapPin className="w-3 h-3" />
+                Auto-Mapping
               </Badge>
               <Badge variant="outline" className="gap-1 border-blue-500/30 text-blue-300 bg-blue-950/30">
                 <Database className="w-3 h-3" />
-                Supabase
+                MongoDB
               </Badge>
               <Badge variant="outline" className="gap-1 border-green-500/30 text-green-300 bg-green-950/30">
                 <Zap className="w-3 h-3" />
-                E-Commerce
+                GSTR-1
               </Badge>
             </div>
           </div>
