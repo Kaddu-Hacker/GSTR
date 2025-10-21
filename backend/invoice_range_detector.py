@@ -14,7 +14,7 @@ class InvoiceRangeDetector:
         """Normalize invoice number: trim and uppercase"""
         if not invoice_no:
             return ""
-        return str(invoice_no).strip().toUpperCase()
+        return str(invoice_no).strip().upper()
     
     @staticmethod
     def split_prefix_number(invoice_no_norm: str) -> Optional[Tuple[str, int, int]]:
