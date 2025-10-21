@@ -83,11 +83,12 @@ async def upload_files(
     seller_state_code: str = Query(default="27"),
     gstin: str = Query(default="27AABCE1234F1Z5"),
     filing_period: str = Query(default="012025"),
+    use_gemini: bool = Query(default=True),
     current_user = Depends(get_current_user_optional)
 ):
     """
-    Upload files with auto-detection and mapping suggestions
-    Uses Supabase Storage for file storage
+    Upload files with Gemini AI-powered auto-detection and mapping suggestions
+    Uses Supabase Storage for file storage + Gemini for intelligent file analysis
     """
     try:
         # Get user ID (use default UUID if not authenticated for backward compatibility)
@@ -97,7 +98,8 @@ async def upload_files(
             metadata={
                 "seller_state_code": seller_state_code,
                 "gstin": gstin,
-                "filing_period": filing_period
+                "filing_period": filing_period,
+                "use_gemini": use_gemini
             }
         )
         
@@ -105,6 +107,7 @@ async def upload_files(
         all_files = []
         needs_mapping = False
         storage_urls = {}
+        gemini_file_insights = {}
         
         # Process each uploaded file
         for file in files:
@@ -134,6 +137,17 @@ async def upload_files(
                 
                 for filename, file_content in extracted_files:
                     file_info = parser.detect_and_classify_file(filename, file_content)
+                    
+                    # Use Gemini to enhance file detection
+                    if use_gemini and file_info.columns:
+                        try:
+                            gemini_suggestion = self._gemini_suggest_file_type(filename, file_info.columns)
+                            if gemini_suggestion:
+                                gemini_file_insights[filename] = gemini_suggestion
+                                logger.info(f"Gemini suggestion for {filename}: {gemini_suggestion}")
+                        except Exception as ge:
+                            logger.warning(f"Gemini file analysis failed: {ge}")
+                    
                     all_files.append(file_info)
                     
                     if file_info.needs_mapping:
@@ -143,6 +157,17 @@ async def upload_files(
                     upload.metadata[f"file_content_{filename}"] = file_content.hex()
             else:
                 file_info = parser.detect_and_classify_file(file.filename, content)
+                
+                # Use Gemini to enhance file detection
+                if use_gemini and file_info.columns:
+                    try:
+                        gemini_suggestion = self._gemini_suggest_file_type(file.filename, file_info.columns)
+                        if gemini_suggestion:
+                            gemini_file_insights[file.filename] = gemini_suggestion
+                            logger.info(f"Gemini suggestion for {file.filename}: {gemini_suggestion}")
+                    except Exception as ge:
+                        logger.warning(f"Gemini file analysis failed: {ge}")
+                
                 all_files.append(file_info)
                 
                 if file_info.needs_mapping:
@@ -154,6 +179,7 @@ async def upload_files(
         
         upload.files = all_files
         upload.status = UploadStatus.MAPPING if needs_mapping else UploadStatus.UPLOADED
+        upload.metadata["gemini_insights"] = gemini_file_insights
         
         # Save to database
         upload_dict = upload.model_dump(mode='json')
@@ -168,13 +194,62 @@ async def upload_files(
         return UploadCreateResponse(
             upload_id=upload.id,
             files=all_files,
-            message=f"Successfully uploaded {len(all_files)} file(s)",
+            message=f"Successfully uploaded {len(all_files)} file(s) with Gemini AI analysis",
             needs_mapping=needs_mapping
         )
         
     except Exception as e:
         logger.error(f"Upload error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
+
+def _gemini_suggest_file_type(filename: str, columns: List[str]) -> Optional[Dict]:
+    """Use Gemini to suggest file type based on filename and columns"""
+    try:
+        import google.generativeai as genai
+        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        
+        prompt = f"""
+Analyze this Excel/CSV file for GST filing and suggest its type:
+
+Filename: {filename}
+Columns: {', '.join(columns[:15])}
+
+Determine the file type from these options:
+- B2B Invoices (registered buyers with GSTIN)
+- B2C Sales (unregistered buyers, no GSTIN)
+- Credit Notes
+- Debit Notes
+- Export Invoices
+- HSN Summary
+- Tax Invoices
+- Unknown
+
+Also suggest the GSTR-1 table/section this belongs to.
+
+Return JSON:
+{{
+    "file_type": "...",
+    "gstr_section": "...",
+    "confidence": "high/medium/low",
+    "reason": "..."
+}}
+"""
+        
+        response = model.generate_content(prompt)
+        response_text = response.text.strip()
+        
+        # Clean markdown
+        if response_text.startswith('```'):
+            response_text = response_text.split('```')[1]
+            if response_text.startswith('json'):
+                response_text = response_text[4:]
+            response_text = response_text.strip()
+        
+        import json
+        return json.loads(response_text)
+    except Exception as e:
+        logger.warning(f"Gemini file type suggestion failed: {e}")
+        return None
 
 
 @api_router.get("/mapping/suggestions/{upload_id}")
