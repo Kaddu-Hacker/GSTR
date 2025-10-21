@@ -113,3 +113,5 @@ supabase==2.22.0
 supabase-auth==2.22.0
 supabase-functions==2.22.0
 pymongo==4.6.1
+google-generativeai==0.8.5
+python-dotenv==1.1.1
