@@ -531,17 +531,16 @@ async def generate_gstr1_json(upload_id: str, use_gemini: bool = True):
             gemini_missing = gemini_service.detect_missing_invoices(all_invoice_numbers)
             logger.info(f"Gemini detected {len(gemini_missing.get('missing_invoices', []))} potentially missing invoices")
         
-        # Generate complete GSTR-1 with ALL tables using new generator
-        complete_generator = CompleteGSTR1Generator(
+        # Generate complete GSTR-1 with ALL tables using Gemini-powered generator
+        gemini_generator = GeminiGSTR1Generator(
             gstin=gstin,
             filing_period=filing_period,
             seller_state_code=seller_state_code
         )
         
-        gstr1_complete = complete_generator.generate_complete_gstr1(
+        gstr1_complete = gemini_generator.generate_complete_gstr1(
             invoice_lines, 
-            document_ranges,
-            use_gemini=use_gemini
+            document_ranges
         )
         
         # Save to database
