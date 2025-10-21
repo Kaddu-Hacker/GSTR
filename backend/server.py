@@ -3,7 +3,7 @@ Enhanced GST Filing Automation API - Schema-Driven GSTR-1 Only
 Removes GSTR-3B, adds auto-mapping, canonical data models, and enhanced validation
 """
 
-from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException, Query, Body
+from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException, Query, Body, Depends
 from fastapi.responses import JSONResponse, StreamingResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -27,8 +27,15 @@ from parser_enhanced import EnhancedFileParser
 from gstr1_generator_schema_driven import SchemaDriverGSTR1Generator
 from invoice_range_detector import InvoiceRangeDetector
 from auto_mapper import HeaderMatcher, create_meesho_mapping_template
-from supabase_client import uploads_collection, invoice_lines_collection, gstr_exports_collection
+
+# Use enhanced Supabase client with auth, storage, and realtime
+from supabase_client_enhanced import (
+    uploads_collection, invoice_lines_collection, gstr_exports_collection,
+    document_ranges_collection, storage, auth
+)
 from json_utils import safe_json_response
+from auth_middleware import get_current_user, get_current_user_optional
+import auth_routes
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
