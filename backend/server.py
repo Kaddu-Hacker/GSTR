@@ -402,10 +402,11 @@ async def generate_gstr1_json(upload_id: str):
         gstr1_export = generator.generate_complete_gstr1(invoice_lines, document_ranges)
         
         # Save to database
+        user_id = upload_doc.get('user_id', 'default_user')
         export_dict = gstr1_export.model_dump(mode='json')
         export_dict = safe_json_response(export_dict)
         
-        await gstr_exports_collection.insert(export_dict)
+        await gstr_exports_collection.insert(export_dict, user_id=user_id)
         
         logger.info(f"Generated GSTR-1 for upload {upload_id}")
         
