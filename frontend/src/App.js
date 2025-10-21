@@ -185,47 +185,30 @@ function App() {
     }
   };
 
-  const downloadJSON = (data, filename) => {
-    console.log("=== Download Started ===");
-    console.log("Filename:", filename);
-    
+  const downloadGSTR1 = () => {
     if (!uploadId) {
-      console.error("ERROR: No upload ID available");
       setErrors(["No upload ID available for download"]);
       return;
     }
     
     try {
-      // Determine file type from filename
-      const fileType = filename.includes('GSTR1B') ? 'gstr1b' : 'gstr3b';
-      
-      console.log("Step 1: Using backend download endpoint");
-      console.log("Upload ID:", uploadId);
-      console.log("File type:", fileType);
-      
       // Use backend endpoint for reliable download
-      const downloadUrl = `${API}/download/${uploadId}/${fileType}`;
-      console.log("Step 2: Download URL:", downloadUrl);
+      const downloadUrl = `${API}/download/${uploadId}/gstr1`;
       
       // Create a temporary link and click it
       const link = document.createElement("a");
       link.href = downloadUrl;
       link.style.display = "none";
       
-      console.log("Step 3: Appending link and triggering download...");
       document.body.appendChild(link);
       link.click();
       
-      console.log("Step 4: Cleanup...");
       setTimeout(() => {
         document.body.removeChild(link);
-        console.log("✅ Download initiated successfully!");
-        console.log("📁 Check your browser's download folder for:", filename);
       }, 100);
       
     } catch (error) {
-      console.error("❌ Download error:", error);
-      console.error("Error stack:", error.stack);
+      console.error("Download error:", error);
       setErrors([`Download failed: ${error.message}`]);
     }
   };
