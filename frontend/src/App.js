@@ -612,6 +612,9 @@ function App() {
           </Card>
         )}
 
+        {/* In-Content Ad 2 */}
+        <AdSpace adSlot="inContent2" className="w-full mb-6" />
+
         {/* GSTR Download */}
         {gstrData && (
           <Card className="mb-6 shadow-2xl border border-gray-800 bg-gray-900/50 backdrop-blur">
