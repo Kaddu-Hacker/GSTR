@@ -533,6 +533,70 @@ function App() {
           </Card>
         )}
 
+        {/* Mapping UI */}
+        {needsMapping && mappingSuggestions && (
+          <Card className="mb-6 shadow-2xl border border-yellow-600 bg-gray-900/50 backdrop-blur">
+            <CardHeader className="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-b border-yellow-800">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl text-gray-100">
+                <MapPin className="w-5 h-5 text-yellow-400" />
+                Field Mapping Required
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                We've auto-detected field mappings. Review and proceed.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {Object.keys(mappingSuggestions.suggestions).map((filename, fileIndex) => {
+                const suggestion = mappingSuggestions.suggestions[filename];
+                return (
+                  <div key={fileIndex} className="mb-6 last:mb-0">
+                    <h4 className="text-sm font-semibold text-gray-300 mb-3">{filename}</h4>
+                    <div className="space-y-2">
+                      {suggestion.mappings.map((mapping, mapIndex) => (
+                        <div key={mapIndex} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-gray-400">{mapping.file_header}</span>
+                            <span className="text-xs text-gray-600">→</span>
+                            <span className="text-sm font-medium text-purple-300">{mapping.canonical_field}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs border-gray-600 text-gray-400">
+                              {(mapping.confidence * 100).toFixed(0)}% {mapping.match_type}
+                            </Badge>
+                            <CheckCircle className="w-4 h-4 text-green-400" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {suggestion.suggested_section && (
+                      <p className="text-xs text-gray-500 mt-2">
+                        Suggested section: <span className="text-purple-400 font-medium">{suggestion.suggested_section.toUpperCase()}</span>
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+              <Button
+                onClick={handleApplyMapping}
+                disabled={processing}
+                className="w-full mt-4 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white shadow-lg"
+              >
+                {processing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Applying & Processing...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Apply Mapping & Continue
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Preview Data */}
         {previewData && previewData.summary && (
           <Card className="mb-6 shadow-2xl border border-gray-800 bg-gray-900/50 backdrop-blur">
