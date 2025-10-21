@@ -261,30 +261,36 @@ async def generate_gstr_json(upload_id: str):
         gstin = upload.metadata.get("gstin", "27AABCE1234F1Z5")
         filing_period = upload.metadata.get("filing_period", "012025")
         
-        # Initialize generator
-        generator = GSTRGenerator(gstin=gstin, filing_period=filing_period)
+        # Use new portal-compliant generator
+        portal_generator = PortalCompliantGSTRGenerator(
+            gstin=gstin, 
+            filing_period=filing_period,
+            eco_gstin="07AARCM9332R1CQ",
+            schema_version="GST3.1.6"
+        )
         
-        # Generate GSTR-1B
-        gstr1b = generator.generate_gstr1b(invoice_lines)
-        
-        # Generate GSTR-3B
-        gstr3b = generator.generate_gstr3b(invoice_lines)
+        # Generate portal-compliant GSTR-1B and GSTR-3B
+        gstr1b_json = portal_generator.generate_gstr1b(invoice_lines)
+        gstr3b_json = portal_generator.generate_gstr3b(invoice_lines)
         
         # Validate
-        warnings = generator.validate_output(gstr1b, gstr3b)
+        warnings = portal_generator.validate_output(gstr1b_json, gstr3b_json)
+        
+        # Add validation note
+        warnings.append("✅ Using Portal-Compliant Generator V2 with enhanced validation")
         
         # Save to Supabase
         gstr1b_export = GSTRExport(
             upload_id=upload_id,
             export_type="GSTR1B",
-            json_data=gstr1b.model_dump(mode='json'),
+            json_data=gstr1b_json,
             validation_warnings=warnings
         )
         
         gstr3b_export = GSTRExport(
             upload_id=upload_id,
             export_type="GSTR3B",
-            json_data=gstr3b.model_dump(mode='json'),
+            json_data=gstr3b_json,
             validation_warnings=warnings
         )
         
@@ -297,12 +303,12 @@ async def generate_gstr_json(upload_id: str):
         gstr3b_dict = safe_json_response(gstr3b_dict)
         await gstr_exports_collection.insert(gstr3b_dict)
         
-        logger.info(f"Generated GSTR JSON files for upload {upload_id}")
+        logger.info(f"Generated portal-compliant GSTR JSON files for upload {upload_id}")
         
         response_data = {
             "upload_id": upload_id,
-            "gstr1b": gstr1b.model_dump(mode='json'),
-            "gstr3b": gstr3b.model_dump(mode='json'),
+            "gstr1b": gstr1b_json,
+            "gstr3b": gstr3b_json,
             "validation_warnings": warnings
         }
         
