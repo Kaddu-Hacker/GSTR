@@ -571,8 +571,9 @@ async def get_preview_data(upload_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# Include router
+# Include routers
 app.include_router(api_router)
+app.include_router(auth_routes.router, prefix="/api")
 
 # CORS middleware
 app.add_middleware(
