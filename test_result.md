@@ -352,7 +352,74 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: |
-      GST Filing Automation application - JSON DOWNLOAD FULLY FIXED (Oct 18, 2025 - 17:44)!
+      GST Filing Automation application - SCHEMA-DRIVEN GSTR-1 UI UPDATE COMPLETE (Oct 21, 2025 - 17:43)!
+      
+      🎯 FRONTEND UI MODERNIZED FOR NEW BACKEND:
+      ✅ REMOVED GSTR-3B: All references to GSTR-3B removed from UI
+        - Download section now shows only GSTR-1 JSON
+        - Updated download handler to use new backend endpoint
+        - Removed dual download buttons
+      
+      ✅ ADDED MAPPING UI: New auto-mapping interface
+        - Displays field mapping suggestions with confidence scores
+        - Shows file header → canonical field mappings
+        - Match types displayed (exact, substring, fuzzy)
+        - "Apply Mapping & Continue" button to proceed with processing
+        - Clean, modern card-based UI with yellow/orange theme for mapping
+      
+      ✅ UPDATED GSTR-1 SECTIONS DISPLAY:
+        - Preview section shows all GSTR-1 sections breakdown
+        - Section counts displayed: B2B, B2CL, B2CS, CDNR, CDNUR, HSN, DOC_ISS
+        - Download section shows detailed GSTR-1 structure
+        - Individual section entry counts visible
+        - Tax summary (CGST, SGST, IGST) displayed
+        - Validation status indicator
+      
+      ✅ REMOVED AI INSIGHTS:
+        - Removed all Gemini AI references
+        - Removed AI insights sections from preview
+        - Updated header badges (Auto-Mapping, MongoDB, GSTR-1)
+        - Removed Sparkles icon imports
+      
+      ✅ STATE MANAGEMENT UPDATES:
+        - Added needsMapping state
+        - Added mappingSuggestions state
+        - Removed aiInsights state
+        - Updated expandedSections for GSTR-1 sections
+      
+      ✅ NEW API INTEGRATION:
+        - fetchMappingSuggestions() - fetches auto-mapping suggestions
+        - handleApplyMapping() - applies mappings and continues processing
+        - Updated upload handler to check for needs_mapping flag
+        - Conditional processing based on mapping requirements
+      
+      🎨 UI IMPROVEMENTS:
+        - Modern dark theme maintained
+        - Clean mapping UI with confidence badges
+        - Comprehensive GSTR-1 sections display
+        - Validation status indicators
+        - Professional card layouts
+      
+      📋 BACKEND STATUS:
+        - Backend running on port 8001 with schema-driven GSTR-1 generator
+        - All endpoints functional (/upload, /mapping/*, /process, /generate, /download)
+        - MongoDB connection active
+        - Canonical data models in use
+        - Auto-mapper engine operational
+      
+      ✅ SERVICES STATUS:
+        - Backend: RUNNING
+        - Frontend: RUNNING
+        - MongoDB: RUNNING
+        - No linting errors in App.js
+        - UI loads correctly
+      
+      🎯 NEXT STEPS:
+        - Test the complete flow: Upload → Mapping (if needed) → Process → Generate → Download
+        - User should test with actual Meesho export files
+        - Verify all GSTR-1 sections are generated correctly
+      
+      📝 PREVIOUS MESSAGE (Oct 18, 2025 - 17:44):
       
       🎯 FINAL SOLUTION IMPLEMENTED:
       ✅ BACKEND DOWNLOAD ENDPOINT: Created new server-side download endpoint
