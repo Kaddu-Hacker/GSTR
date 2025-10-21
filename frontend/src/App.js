@@ -131,6 +131,42 @@ function App() {
     }
   };
 
+  const fetchMappingSuggestions = async (id) => {
+    try {
+      const response = await axios.get(`${API}/mapping/suggestions/${id}`);
+      setMappingSuggestions(response.data);
+    } catch (error) {
+      console.error("Mapping suggestions error:", error);
+      setErrors([error.response?.data?.detail || error.message || "Failed to fetch mapping suggestions"]);
+    }
+  };
+
+  const handleApplyMapping = async () => {
+    if (!uploadId || !mappingSuggestions) return;
+    
+    setProcessing(true);
+    setErrors([]);
+    
+    try {
+      // Use auto-suggested mappings
+      const mappings = {};
+      Object.keys(mappingSuggestions.suggestions).forEach(filename => {
+        mappings[filename] = mappingSuggestions.suggestions[filename].mappings;
+      });
+      
+      await axios.post(`${API}/mapping/apply/${uploadId}`, mappings);
+      setNeedsMapping(false);
+      setMappingSuggestions(null);
+      
+      // Continue with processing
+      await handleProcess(uploadId);
+      
+    } catch (error) {
+      setErrors([error.response?.data?.detail || error.message || "Failed to apply mapping"]);
+      setProcessing(false);
+    }
+  };
+
   const handleProcess = async (id) => {
     const processId = id || uploadId;
     if (!processId) return;
@@ -163,7 +199,6 @@ function App() {
     try {
       const response = await axios.get(`${API}/preview/${id}`);
       setPreviewData(response.data);
-      setAiInsights(response.data.ai_insights);
     } catch (error) {
       console.error("Preview fetch error:", error);
     }
