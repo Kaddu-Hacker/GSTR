@@ -646,57 +646,85 @@ function App() {
         {/* In-Content Ad 2 */}
         <AdSpace adSlot="inContent2" className="w-full mb-6" />
 
-        {/* GSTR Download */}
+        {/* GSTR-1 Download */}
         {gstrData && (
           <Card className="mb-6 shadow-2xl border border-gray-800 bg-gray-900/50 backdrop-blur">
             <CardHeader className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 border-b border-gray-800">
               <CardTitle className="flex items-center gap-2 text-lg sm:text-xl text-gray-100">
                 <CheckCircle className="w-5 h-5 text-green-400" />
-                GSTR Files Ready
+                GSTR-1 Ready for Download
               </CardTitle>
-              <CardDescription className="text-gray-400">Download your GST return JSON files</CardDescription>
+              <CardDescription className="text-gray-400">Your GSTR-1 JSON file is ready</CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Button
-                  onClick={() => downloadJSON(gstrData.gstr1b, `GSTR1B_${filingPeriod}.json`)}
-                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download GSTR-1B
-                </Button>
-                <Button
-                  onClick={() => downloadJSON(gstrData.gstr3b, `GSTR3B_${filingPeriod}.json`)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download GSTR-3B
-                </Button>
-              </div>
+              <Button
+                onClick={downloadGSTR1}
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg mb-6"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download GSTR-1 JSON
+              </Button>
 
-              {/* Summary Preview */}
-              <div className="mt-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                <h4 className="font-semibold mb-3 text-sm text-gray-300">Summary</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              {/* GSTR-1 Sections Summary */}
+              <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                <h4 className="font-semibold mb-3 text-sm text-gray-300">GSTR-1 Sections Included</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
                   <div>
-                    <p className="text-gray-500">GSTR-1B Tables</p>
-                    <p className="font-medium text-gray-300">Table 7: {gstrData.gstr1b?.table7?.length || 0} entries</p>
-                    <p className="font-medium text-gray-300">Table 13: {gstrData.gstr1b?.table13?.length || 0} entries</p>
-                    <p className="font-medium text-gray-300">Table 14: {gstrData.gstr1b?.table14?.length || 0} entries</p>
+                    <p className="text-gray-500 text-xs">B2B (Registered)</p>
+                    <p className="font-medium text-gray-300">{gstrData.gstr1?.b2b?.length || 0} entries</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Total Tax</p>
-                    <p className="font-medium text-gray-300">
-                      CGST: ₹{previewData?.summary?.total_cgst?.toFixed(2) || '0.00'}
-                    </p>
-                    <p className="font-medium text-gray-300">
-                      SGST: ₹{previewData?.summary?.total_sgst?.toFixed(2) || '0.00'}
-                    </p>
-                    <p className="font-medium text-gray-300">
-                      IGST: ₹{previewData?.summary?.total_igst?.toFixed(2) || '0.00'}
-                    </p>
+                    <p className="text-gray-500 text-xs">B2CL (Large)</p>
+                    <p className="font-medium text-gray-300">{gstrData.gstr1?.b2cl?.length || 0} entries</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">B2CS (Small)</p>
+                    <p className="font-medium text-gray-300">{gstrData.gstr1?.b2cs?.length || 0} entries</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">CDNR (Reg. Notes)</p>
+                    <p className="font-medium text-gray-300">{gstrData.gstr1?.cdnr?.length || 0} entries</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">CDNUR (Unreg. Notes)</p>
+                    <p className="font-medium text-gray-300">{gstrData.gstr1?.cdnur?.length || 0} entries</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">HSN Summary</p>
+                    <p className="font-medium text-gray-300">{gstrData.gstr1?.hsn?.length || 0} entries</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">DOC_ISS (Table 13)</p>
+                    <p className="font-medium text-gray-300">{gstrData.gstr1?.doc_iss?.length || 0} entries</p>
                   </div>
                 </div>
+                
+                {/* Tax Summary */}
+                <div className="mt-4 pt-4 border-t border-gray-700">
+                  <p className="text-xs text-gray-500 mb-2">Tax Summary</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div>
+                      <p className="text-gray-500 text-xs">CGST</p>
+                      <p className="font-medium text-gray-300">₹{previewData?.summary?.total_cgst?.toFixed(2) || '0.00'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs">SGST</p>
+                      <p className="font-medium text-gray-300">₹{previewData?.summary?.total_sgst?.toFixed(2) || '0.00'}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs">IGST</p>
+                      <p className="font-medium text-gray-300">₹{previewData?.summary?.total_igst?.toFixed(2) || '0.00'}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Validation Status */}
+                {gstrData.validation_warnings && gstrData.validation_warnings.length === 0 && (
+                  <div className="mt-4 flex items-center gap-2 text-green-400">
+                    <CheckCircle className="w-4 h-4" />
+                    <span className="text-sm">All validations passed</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
