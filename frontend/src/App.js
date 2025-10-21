@@ -635,55 +635,11 @@ function App() {
                         <p className="text-xs text-gray-500 uppercase mb-1">{section}</p>
                         <p className="text-lg font-bold text-gray-200">{count} entries</p>
                       </div>
-                          <span className="text-purple-400 mt-1">•</span>
-                          <span>{insight}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    ))}
                   </div>
-                )}
-
-                {/* State Breakdown */}
-                {previewData.breakdown?.by_state_and_rate && previewData.breakdown.by_state_and_rate.length > 0 && (
-                  <div className="mb-4">
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleSection('stateBreakdown')}
-                      className="w-full justify-between p-4 hover:bg-gray-800/50 text-gray-300"
-                    >
-                      <span className="font-medium">State-wise & Rate-wise Breakdown</span>
-                      {expandedSections.stateBreakdown ? <ChevronUp /> : <ChevronDown />}
-                    </Button>
-                    {expandedSections.stateBreakdown && (
-                      <div className="overflow-x-auto mt-2">
-                        <table className="w-full text-sm">
-                          <thead className="bg-gray-800 border-b border-gray-700">
-                            <tr>
-                              <th className="p-3 text-left text-gray-300">State</th>
-                              <th className="p-3 text-left text-gray-300">GST Rate</th>
-                              <th className="p-3 text-right text-gray-300">Count</th>
-                              <th className="p-3 text-right text-gray-300">Taxable Value</th>
-                              <th className="p-3 text-right text-gray-300">Tax Amount</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {previewData.breakdown.by_state_and_rate.map((item, index) => (
-                              <tr key={index} className="border-b border-gray-800 hover:bg-gray-800/30">
-                                <td className="p-3 text-gray-300">{item.state_name || item.state_code}</td>
-                                <td className="p-3 text-gray-300">{item.gst_rate}%</td>
-                                <td className="p-3 text-right text-gray-300">{item.count}</td>
-                                <td className="p-3 text-right text-gray-300">₹{item.taxable_value?.toFixed(2)}</td>
-                                <td className="p-3 text-right text-gray-300">₹{item.tax_amount?.toFixed(2)}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            )}
+                </div>
+              )}
+            </CardContent>
           </Card>
         )}
 
