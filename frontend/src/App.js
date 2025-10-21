@@ -26,15 +26,18 @@ function App() {
   const [uploadDetails, setUploadDetails] = useState(null);
   const [gstrData, setGstrData] = useState(null);
   const [previewData, setPreviewData] = useState(null);
-  const [showPreview, setShowPreview] = useState(false);
+  const [needsMapping, setNeedsMapping] = useState(false);
+  const [mappingSuggestions, setMappingSuggestions] = useState(null);
   const [errors, setErrors] = useState([]);
   const [warnings, setWarnings] = useState([]);
-  const [aiInsights, setAiInsights] = useState(null);
   const [expandedSections, setExpandedSections] = useState({
-    stateBreakdown: false,
-    docBreakdown: false,
-    auditLog: false,
-    aiInsights: false
+    b2b: false,
+    b2cl: false,
+    b2cs: true,
+    cdnr: false,
+    cdnur: false,
+    hsn: false,
+    doc_iss: false
   });
   
   // User inputs
