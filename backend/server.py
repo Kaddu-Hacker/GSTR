@@ -30,11 +30,19 @@ from invoice_range_detector import InvoiceRangeDetector
 from auto_mapper import HeaderMatcher, create_meesho_mapping_template
 from gemini_service import gemini_service
 
-# Use enhanced Supabase client with auth, storage, and realtime
-from supabase_client_enhanced import (
-    uploads_collection, invoice_lines_collection, gstr_exports_collection,
-    document_ranges_collection, storage, auth
-)
+# Use MongoDB client (fallback when Supabase not configured)
+try:
+    from supabase_client_enhanced import (
+        uploads_collection, invoice_lines_collection, gstr_exports_collection,
+        document_ranges_collection, storage, auth
+    )
+    logger.info("✅ Using Supabase client")
+except Exception as e:
+    logger.warning(f"⚠️ Supabase not available, using MongoDB: {e}")
+    from mongo_client import (
+        uploads_collection, invoice_lines_collection, gstr_exports_collection,
+        document_ranges_collection, storage, auth
+    )
 from json_utils import safe_json_response
 from auth_middleware import get_current_user, get_current_user_optional
 import auth_routes
