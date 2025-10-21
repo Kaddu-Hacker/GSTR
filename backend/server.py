@@ -700,7 +700,8 @@ async def get_preview_data(upload_id: str):
 
 # Include routers
 app.include_router(api_router)
-app.include_router(auth_routes.router, prefix="/api")
+if HAS_AUTH:
+    app.include_router(auth_routes.router, prefix="/api")
 
 # CORS middleware
 app.add_middleware(
