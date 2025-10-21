@@ -215,10 +215,10 @@ class SupabaseInvoiceLines:
         if not invoice_lines:
             return []
         
-        # Add user_id to each line if provided
-        if user_id:
-            for line in invoice_lines:
-                line['user_id'] = user_id
+        # Add user_id to each line (default if not provided)
+        default_user_id = '00000000-0000-0000-0000-000000000001'
+        for line in invoice_lines:
+            line['user_id'] = user_id if user_id else default_user_id
         
         result = supabase_admin.table('invoice_lines').insert(invoice_lines).execute()
         return result.data
