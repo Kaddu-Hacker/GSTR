@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Build a fully functional GST Filing Automation web application for Meesho sellers as per the requirements in GST-Automation.pdf"
+user_problem_statement: "Build a fully functional GST Filing Automation web application for Meesho sellers. NOW UPDATED: Full Supabase integration with Auth, Storage, and Realtime capabilities."
 
 backend:
   - task: "MongoDB models and schemas"
