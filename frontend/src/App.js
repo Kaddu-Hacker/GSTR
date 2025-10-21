@@ -670,7 +670,23 @@ function App() {
             </CardContent>
           </Card>
         )}
-      </main>
+          </main>
+
+          {/* Sidebar with Ads */}
+          <aside className="lg:w-80 flex-shrink-0 space-y-6">
+            {/* Sidebar Ad */}
+            <div className="sticky top-24">
+              <AdSpace adSlot="sidebar" className="w-full" />
+            </div>
+          </aside>
+
+        </div>
+      </div>
+
+      {/* Footer Banner Ad */}
+      <div className="container mx-auto px-4 py-4 max-w-7xl">
+        <AdSpace adSlot="footerBanner" className="w-full" />
+      </div>
 
       {/* Footer */}
       <footer className="bg-gray-900 border-t border-gray-800 mt-12 py-6">
