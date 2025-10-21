@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Build a fully functional GST Filing Automation web application for Meesho sellers. NOW UPDATED: Full Supabase integration with Auth, Storage, and Realtime capabilities."
+user_problem_statement: "Build a fully functional GST Filing Automation web application for Meesho sellers. NOW UPDATED: Complete GSTR-1 with ALL tables (B2B, B2CL, B2CS/Table 7, CDNR, CDNUR, EXP, AT, ATADJ, HSN/Table 12, DOC_ISS/Table 13, NIL, amendments) matching exact GST portal JSON format. Comprehensive Gemini AI integration everywhere for intelligent data processing, validation, and insights."
 
 backend:
   - task: "MongoDB models and schemas"
