@@ -55,8 +55,20 @@ except Exception as e:
     )
     
 from json_utils import safe_json_response
-from auth_middleware import get_current_user, get_current_user_optional
-import auth_routes
+
+# Import auth middleware with fallback
+try:
+    from auth_middleware import get_current_user, get_current_user_optional
+    import auth_routes
+    HAS_AUTH = True
+except Exception as auth_error:
+    logger.warning(f"⚠️ Auth middleware not available: {auth_error}")
+    # Create mock auth dependencies
+    def get_current_user():
+        return None
+    def get_current_user_optional():
+        return None
+    HAS_AUTH = False
 
 # Create the main app
 app = FastAPI(title="GST Filing Automation API - GSTR-1 Complete with ALL Tables")
