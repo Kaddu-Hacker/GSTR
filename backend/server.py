@@ -61,9 +61,17 @@ logger = logging.getLogger(__name__)
 @api_router.get("/")
 async def root():
     return {
-        "message": "GST Filing Automation API - Schema-Driven GSTR-1",
-        "version": "2.0",
-        "features": ["Decimal Precision", "Auto-Mapping", "All GSTR-1 Sections", "Portal-Compliant"]
+        "message": "GST Filing Automation API - Schema-Driven GSTR-1 with Supabase",
+        "version": "3.0",
+        "features": [
+            "Supabase Auth", 
+            "Supabase Storage",
+            "Supabase Realtime",
+            "Decimal Precision", 
+            "Auto-Mapping", 
+            "All GSTR-1 Sections", 
+            "Portal-Compliant"
+        ]
     }
 
 
