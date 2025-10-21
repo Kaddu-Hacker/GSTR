@@ -248,8 +248,11 @@ class SupabaseGSTRExports:
     @staticmethod
     async def insert(export_data: dict, user_id: str = None):
         """Insert GSTR export"""
+        # Set user_id to default if not provided
         if user_id:
             export_data['user_id'] = user_id
+        else:
+            export_data['user_id'] = '00000000-0000-0000-0000-000000000001'
         result = supabase_admin.table('gstr_exports').insert(export_data).execute()
         return result.data[0] if result.data else None
     
