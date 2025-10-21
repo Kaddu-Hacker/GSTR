@@ -94,7 +94,8 @@ function App() {
     setUploadId(null);
     setGstrData(null);
     setPreviewData(null);
-    setAiInsights(null);
+    setNeedsMapping(false);
+    setMappingSuggestions(null);
 
     try {
       const formData = new FormData();
@@ -113,9 +114,15 @@ function App() {
       const data = response.data;
       setUploadId(data.upload_id);
       setUploadDetails({ files: data.files });
-
-      // Auto-process
-      await handleProcess(data.upload_id);
+      
+      // Check if mapping needed
+      if (data.needs_mapping) {
+        setNeedsMapping(true);
+        await fetchMappingSuggestions(data.upload_id);
+      } else {
+        // Auto-process
+        await handleProcess(data.upload_id);
+      }
       
     } catch (error) {
       setErrors([error.response?.data?.detail || error.message || "Upload failed"]);
