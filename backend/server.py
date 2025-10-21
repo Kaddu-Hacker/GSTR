@@ -313,10 +313,11 @@ async def process_upload(upload_id: str):
                 logger.error(error_msg)
         
         # Save invoice lines
+        user_id = upload_doc.get('user_id', 'default_user')
         if all_invoice_lines:
             invoice_docs = [line.model_dump(mode='json') for line in all_invoice_lines]
             invoice_docs = [safe_json_response(doc) for doc in invoice_docs]
-            await invoice_lines_collection.insert_many(invoice_docs)
+            await invoice_lines_collection.insert_many(invoice_docs, user_id=user_id)
         
         # Detect document ranges for Table 13
         range_detector = InvoiceRangeDetector()
