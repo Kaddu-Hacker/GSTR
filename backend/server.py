@@ -84,16 +84,42 @@ api_router = APIRouter(prefix="/api")
 @api_router.get("/")
 async def root():
     return {
-        "message": "GST Filing Automation API - Schema-Driven GSTR-1 with Supabase",
-        "version": "3.0",
+        "message": "Complete GST Filing Automation API - ALL GSTR-1 Tables with Gemini AI",
+        "version": "4.0-complete",
+        "gstr1_tables": [
+            "B2B (Table 4) - Registered buyers",
+            "B2CL (Table 5) - Large B2C > 2.5L",
+            "B2CS (Table 7) - Small B2C <= 2.5L",
+            "CDNR (Table 9B) - Credit/Debit Notes Registered",
+            "CDNUR (Table 9B) - Credit/Debit Notes Unregistered",
+            "EXP (Table 6A) - Export invoices",
+            "AT (Table 11A) - Advances received",
+            "ATADJ (Table 11B) - Advance adjustments",
+            "HSN (Table 12) - HSN/SAC summary",
+            "DOC_ISS (Table 13) - Documents issued",
+            "EXEMP (Table 8) - NIL rated/exempted/non-GST",
+            "Plus: Amendments for all tables"
+        ],
+        "gemini_ai_features": [
+            "Intelligent file type detection",
+            "Auto-mapping suggestions",
+            "Invoice data validation",
+            "HSN code verification",
+            "Missing invoice detection",
+            "Tax calculation validation",
+            "Place of supply validation",
+            "Missing fields detection",
+            "GSTR section suggestions",
+            "Filing insights and recommendations"
+        ],
         "features": [
-            "Supabase Auth", 
-            "Supabase Storage",
-            "Supabase Realtime",
-            "Decimal Precision", 
-            "Auto-Mapping", 
-            "All GSTR-1 Sections", 
-            "Portal-Compliant"
+            "MongoDB/Supabase support",
+            "Decimal precision",
+            "Portal-compliant JSON format",
+            "Complete GSTR-1 coverage",
+            "Gemini AI everywhere",
+            "Auto-field mapping",
+            "Document range detection"
         ]
     }
 
