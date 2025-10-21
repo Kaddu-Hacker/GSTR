@@ -1,6 +1,6 @@
 """
-Enhanced GST Filing Automation API - Schema-Driven GSTR-1 Only
-Removes GSTR-3B, adds auto-mapping, canonical data models, and enhanced validation
+Complete GST Filing Automation API - All GSTR-1 Tables with Gemini AI
+Includes B2B, B2CL, B2CS, CDNR, CDNUR, EXP, AT, ATADJ, HSN, DOC_ISS, NIL, and more
 """
 
 from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException, Query, Body, Depends
@@ -15,6 +15,16 @@ import uuid
 from datetime import datetime, timezone
 import json
 from io import BytesIO
+
+# Load environment and configure logging FIRST
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Import canonical models
 from models_canonical import (
@@ -43,19 +53,10 @@ except Exception as e:
         uploads_collection, invoice_lines_collection, gstr_exports_collection,
         document_ranges_collection, storage, auth
     )
+    
 from json_utils import safe_json_response
 from auth_middleware import get_current_user, get_current_user_optional
 import auth_routes
-
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
-
-# Configure logging FIRST
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 # Create the main app
 app = FastAPI(title="GST Filing Automation API - GSTR-1 Complete with ALL Tables")
