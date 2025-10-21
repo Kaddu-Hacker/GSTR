@@ -387,10 +387,10 @@ function App() {
             </div>
 
             <Alert className="mt-6 border-blue-600/50 bg-blue-950/30">
-              <Sparkles className="h-4 w-4 text-blue-400" />
-              <AlertTitle className="text-blue-300">E-Commerce Note</AlertTitle>
+              <FileText className="h-4 w-4 text-blue-400" />
+              <AlertTitle className="text-blue-300">Auto-Mapping Feature</AlertTitle>
               <AlertDescription className="text-blue-200 text-sm">
-                Meesho acts as an e-commerce operator (ECO). Your sales will be reported under Meesho's GSTIN ({MEESHO_GSTIN}) as per GST regulations.
+                Our smart system automatically maps your file headers to GSTR-1 fields. If manual mapping is needed, we'll guide you through the process.
               </AlertDescription>
             </Alert>
           </CardContent>
