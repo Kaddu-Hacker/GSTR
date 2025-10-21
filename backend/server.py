@@ -50,18 +50,18 @@ import auth_routes
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Create the main app
-app = FastAPI(title="GST Filing Automation API - GSTR-1 Schema-Driven")
-
-# Create router with /api prefix
-api_router = APIRouter(prefix="/api")
-
-# Configure logging
+# Configure logging FIRST
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Create the main app
+app = FastAPI(title="GST Filing Automation API - GSTR-1 Complete with ALL Tables")
+
+# Create router with /api prefix
+api_router = APIRouter(prefix="/api")
 
 
 # ============================================================================
