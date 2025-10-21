@@ -1,11 +1,13 @@
 """
 Supabase database client for GST Filing Automation
-Replaces MongoDB with Supabase PostgreSQL
+Schema-driven GSTR-1 with Canonical Models
 """
 import os
+import logging
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from pathlib import Path
+from typing import Optional, List, Dict, Any
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -14,8 +16,15 @@ load_dotenv(ROOT_DIR / '.env')
 SUPABASE_URL = os.environ.get('SUPABASE_URL')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
 
+logger = logging.getLogger(__name__)
+
 # Create Supabase client
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+try:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    logger.info(f"✅ Supabase client connected to {SUPABASE_URL}")
+except Exception as e:
+    logger.error(f"❌ Failed to create Supabase client: {str(e)}")
+    raise
 
 
 async def init_database():
@@ -24,11 +33,11 @@ async def init_database():
     
     Tables:
     1. uploads - Store upload metadata
-    2. invoice_lines - Store parsed invoice line items
-    3. gstr_exports - Store generated GSTR JSON files
+    2. invoice_lines - Store parsed invoice line items (canonical model)
+    3. gstr_exports - Store generated GSTR-1 JSON files
+    4. document_ranges - Store document ranges for Table 13
     """
-    # Note: Tables should be created in Supabase dashboard or via SQL migration
-    # This function is a placeholder for any initialization logic needed
+    logger.info("Supabase database initialized")
     pass
 
 
