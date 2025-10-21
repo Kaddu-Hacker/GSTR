@@ -272,8 +272,17 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
+      {/* Header Banner Ad */}
+      <div className="container mx-auto px-4 py-4 max-w-7xl">
+        <AdSpace adSlot="headerBanner" className="w-full" />
+      </div>
+
+      {/* Main Content with Sidebar Layout */}
+      <div className="container mx-auto px-4 py-6 sm:py-8 max-w-7xl">
+        <div className="flex flex-col lg:flex-row gap-6">
+          
+          {/* Main Content Area */}
+          <main className="flex-1 min-w-0">
         
         {/* Errors */}
         {errors.length > 0 && (
