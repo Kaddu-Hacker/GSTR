@@ -212,16 +212,12 @@ function App() {
       const response = await axios.post(`${API}/generate/${generateId}`);
       const data = response.data;
       
-      console.log("Generated GSTR data:", data);
+      console.log("Generated GSTR-1 data:", data);
       
       setGstrData(data);
       
       if (data.validation_warnings && data.validation_warnings.length > 0) {
         setWarnings(data.validation_warnings);
-      }
-
-      if (data.ai_insights) {
-        setAiInsights(data.ai_insights);
       }
       
     } catch (error) {
