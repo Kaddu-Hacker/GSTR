@@ -112,3 +112,4 @@ psycopg2-binary==2.9.11
 supabase==2.22.0
 supabase-auth==2.22.0
 supabase-functions==2.22.0
+pymongo==4.6.1
