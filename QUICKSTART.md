@@ -17,7 +17,7 @@
 
 The application is already configured and running in supervisor. Just access:
 
-**Frontend**: https://canonical-tax-data.preview.emergentagent.com
+**Frontend**: https://gst-filing-tool.preview.emergentagent.com
 
 ### 3. Test the Application
 
@@ -148,7 +148,7 @@ CORS_ORIGINS=*
 
 ### Frontend (`/app/frontend/.env`)
 ```env
-REACT_APP_BACKEND_URL=https://canonical-tax-data.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://gst-filing-tool.preview.emergentagent.com
 ```
 
 ---

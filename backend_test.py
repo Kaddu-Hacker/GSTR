@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Backend URL from frontend environment
-BACKEND_URL = "https://canonical-tax-data.preview.emergentagent.com/api"
+BACKEND_URL = "https://gst-filing-tool.preview.emergentagent.com/api"
 
 class GSTBackendTester:
     def __init__(self):
