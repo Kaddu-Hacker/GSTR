@@ -1,38 +1,42 @@
-from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException, Query
+"""
+Enhanced GST Filing Automation API - Schema-Driven GSTR-1 Only
+Removes GSTR-3B, adds auto-mapping, canonical data models, and enhanced validation
+"""
+
+from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException, Query, Body
 from fastapi.responses import JSONResponse, StreamingResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional
+from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timezone
-import math
 import json
 from io import BytesIO
 
-# Import our custom modules
-from models import (
+# Import canonical models
+from models_canonical import (
     Upload, UploadStatus, FileType, FileInfo,
-    InvoiceLine, GSTRExport, ProcessingResult,
-    UploadCreateResponse, GSTR1BOutput, GSTR3BOutput
+    CanonicalInvoiceLine, DocumentRange, GSTR1Export,
+    ProcessingResult, UploadCreateResponse, HeaderMapping,
+    MappingTemplate
 )
-from parser import FileParser
-from gstr_generator import GSTRGenerator
-from gstr_generator_v2 import PortalCompliantGSTRGenerator  # New portal-compliant generator
+from parser_enhanced import EnhancedFileParser
+from gstr1_generator_schema_driven import SchemaDriverGSTR1Generator
+from invoice_range_detector import InvoiceRangeDetector
+from auto_mapper import HeaderMatcher, create_meesho_mapping_template
 from supabase_client import uploads_collection, invoice_lines_collection, gstr_exports_collection
-from gemini_service import gemini_service
 from json_utils import safe_json_response
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Create the main app without a prefix
-app = FastAPI(title="GST Filing Automation API with AI")
+# Create the main app
+app = FastAPI(title="GST Filing Automation API - GSTR-1 Schema-Driven")
 
-# Create a router with the /api prefix
+# Create router with /api prefix
 api_router = APIRouter(prefix="/api")
 
 # Configure logging
@@ -49,22 +53,24 @@ logger = logging.getLogger(__name__)
 
 @api_router.get("/")
 async def root():
-    return {"message": "GST Filing Automation API with AI", "version": "2.0", "features": ["Supabase", "Gemini AI"]}
+    return {
+        "message": "GST Filing Automation API - Schema-Driven GSTR-1",
+        "version": "2.0",
+        "features": ["Decimal Precision", "Auto-Mapping", "All GSTR-1 Sections", "Portal-Compliant"]
+    }
 
 
 @api_router.post("/upload", response_model=UploadCreateResponse)
 async def upload_files(
     files: List[UploadFile] = File(...),
-    seller_state_code: str = Query(default="27", description="Seller's state code (e.g., 27 for Maharashtra)"),
-    gstin: str = Query(default="27AABCE1234F1Z5", description="Seller's GSTIN"),
-    filing_period: str = Query(default="012025", description="Filing period (MMYYYY)")
+    seller_state_code: str = Query(default="27"),
+    gstin: str = Query(default="27AABCE1234F1Z5"),
+    filing_period: str = Query(default="012025")
 ):
     """
-    Upload Meesho export files (ZIP or individual Excel/CSV files)
-    Auto-detects file types and stores for processing
+    Upload files with auto-detection and mapping suggestions
     """
     try:
-        # Create upload record
         upload = Upload(
             metadata={
                 "seller_state_code": seller_state_code,
@@ -73,58 +79,53 @@ async def upload_files(
             }
         )
         
-        # Initialize parser
-        parser = FileParser(seller_state_code=seller_state_code)
-        
+        parser = EnhancedFileParser(seller_state_code=seller_state_code)
         all_files = []
+        needs_mapping = False
         
         # Process each uploaded file
         for file in files:
             content = await file.read()
             
-            # Check if it's a ZIP file
+            # Check if ZIP
             if file.filename.lower().endswith('.zip'):
-                # Extract files from ZIP
                 extracted_files = parser.extract_files_from_zip(content)
                 
-                # Classify extracted files
-                classified = parser.detect_and_classify_files(extracted_files)
-                all_files.extend(classified)
+                for filename, file_content in extracted_files:
+                    file_info = parser.detect_and_classify_file(filename, file_content)
+                    all_files.append(file_info)
+                    
+                    if file_info.needs_mapping:
+                        needs_mapping = True
+                    
+                    # Store content
+                    upload.metadata[f"file_content_{filename}"] = file_content.hex()
             else:
-                # Single file
-                classified = parser.detect_and_classify_files([(file.filename, content)])
-                all_files.extend(classified)
+                file_info = parser.detect_and_classify_file(file.filename, content)
+                all_files.append(file_info)
+                
+                if file_info.needs_mapping:
+                    needs_mapping = True
+                
+                upload.metadata[f"file_content_{file.filename}"] = content.hex()
         
-        # Store file info (without content for now)
-        file_infos = []
-        for f in all_files:
-            file_info = FileInfo(
-                filename=f["filename"],
-                file_type=FileType(f["file_type"]),
-                detected=f["detected"],
-                row_count=f.get("row_count"),
-                columns=f.get("columns")
-            )
-            file_infos.append(file_info)
-            
-            # Store content temporarily in upload metadata
-            upload.metadata[f"file_content_{f['filename']}"] = f.get("content", b"").hex()
+        upload.files = all_files
+        upload.status = UploadStatus.MAPPING if needs_mapping else UploadStatus.UPLOADED
         
-        upload.files = file_infos
-        
-        # Save to Supabase
+        # Save to database
         upload_dict = upload.model_dump(mode='json')
         upload_dict['upload_date'] = upload_dict['upload_date'].isoformat() if hasattr(upload_dict['upload_date'], 'isoformat') else upload_dict['upload_date']
         upload_dict['files'] = [f.model_dump(mode='json') for f in upload.files]
         
         await uploads_collection.create(upload_dict)
         
-        logger.info(f"Upload created: {upload.id}, {len(file_infos)} files detected")
+        logger.info(f"Upload created: {upload.id}, {len(all_files)} files, needs_mapping={needs_mapping}")
         
         return UploadCreateResponse(
             upload_id=upload.id,
-            files=file_infos,
-            message=f"Successfully uploaded {len(file_infos)} file(s)"
+            files=all_files,
+            message=f"Successfully uploaded {len(all_files)} file(s)",
+            needs_mapping=needs_mapping
         )
         
     except Exception as e:
@@ -132,14 +133,82 @@ async def upload_files(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@api_router.get("/mapping/suggestions/{upload_id}")
+async def get_mapping_suggestions(upload_id: str):
+    """
+    Get auto-mapping suggestions for uploaded files
+    """
+    try:
+        upload_doc = await uploads_collection.find_one(upload_id)
+        if not upload_doc:
+            raise HTTPException(status_code=404, detail="Upload not found")
+        
+        upload = Upload(**upload_doc)
+        parser = EnhancedFileParser()
+        
+        suggestions = {}
+        
+        for file_info in upload.files:
+            if not file_info.columns:
+                continue
+            
+            # Get auto-mapping suggestions
+            mappings = parser.header_matcher.map_headers(file_info.columns)
+            suggested_section = parser.header_matcher.suggest_section(file_info.columns)
+            
+            suggestions[file_info.filename] = {
+                "mappings": [m.model_dump() for m in mappings.values()],
+                "suggested_section": suggested_section,
+                "confidence": file_info.mapping_confidence
+            }
+        
+        return {"upload_id": upload_id, "suggestions": suggestions}
+        
+    except Exception as e:
+        logger.error(f"Mapping suggestions error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/mapping/apply/{upload_id}")
+async def apply_mapping(
+    upload_id: str,
+    mappings: Dict[str, List[Dict]] = Body(...)
+):
+    """
+    Apply user-confirmed mappings and proceed to processing
+    
+    Body format:
+    {
+        "filename1.xlsx": [
+            {"file_header": "...", "canonical_field": "...", "confidence": 1.0, "match_type": "exact"},
+            ...
+        ]
+    }
+    """
+    try:
+        # Store mappings in upload metadata
+        upload_doc = await uploads_collection.find_one(upload_id)
+        if not upload_doc:
+            raise HTTPException(status_code=404, detail="Upload not found")
+        
+        upload_doc["metadata"]["approved_mappings"] = mappings
+        upload_doc["status"] = UploadStatus.UPLOADED.value
+        
+        await uploads_collection.update(upload_id, upload_doc)
+        
+        return {"message": "Mappings applied successfully", "upload_id": upload_id}
+        
+    except Exception as e:
+        logger.error(f"Apply mapping error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/process/{upload_id}", response_model=ProcessingResult)
 async def process_upload(upload_id: str):
     """
-    Process uploaded files: parse, validate, and prepare for JSON generation
-    Enhanced with Gemini AI for invoice validation
+    Process uploaded files with canonical normalization
     """
     try:
-        # Get upload record
         upload_doc = await uploads_collection.find_one(upload_id)
         if not upload_doc:
             raise HTTPException(status_code=404, detail="Upload not found")
@@ -149,36 +218,48 @@ async def process_upload(upload_id: str):
         # Update status
         await uploads_collection.update(upload_id, {"status": UploadStatus.PROCESSING.value})
         
-        # Get metadata
         seller_state_code = upload.metadata.get("seller_state_code", "27")
-        
-        # Initialize parser
-        parser = FileParser(seller_state_code=seller_state_code)
+        parser = EnhancedFileParser(seller_state_code=seller_state_code)
         
         all_invoice_lines = []
         errors = []
         
+        # Get approved mappings if any
+        approved_mappings = upload.metadata.get("approved_mappings", {})
+        
         # Process each file
         for file_info in upload.files:
-            if not file_info.detected:
-                errors.append(f"File {file_info.filename} type not detected, skipping")
+            if not file_info.detected and file_info.filename not in approved_mappings:
+                errors.append(f"File {file_info.filename} needs mapping")
                 continue
             
             try:
-                # Retrieve file content from metadata
+                # Retrieve file content
                 content_hex = upload.metadata.get(f"file_content_{file_info.filename}")
                 if not content_hex:
-                    errors.append(f"File content not found for {file_info.filename}")
+                    errors.append(f"Content not found for {file_info.filename}")
                     continue
                 
                 content = bytes.fromhex(content_hex)
                 
-                # Parse file
-                invoice_lines = parser.parse_file(
+                # Get mappings (either auto or user-approved)
+                if file_info.filename in approved_mappings:
+                    file_mappings = {
+                        m["file_header"]: HeaderMapping(**m)
+                        for m in approved_mappings[file_info.filename]
+                    }
+                else:
+                    # Use auto-detected mappings
+                    headers = parser.read_headers(content, file_info.filename)
+                    file_mappings = parser.header_matcher.map_headers(headers)
+                
+                # Parse with mappings
+                invoice_lines = parser.parse_file_with_mapping(
                     content,
                     file_info.filename,
-                    file_info.file_type,
-                    upload_id
+                    upload_id,
+                    file_mappings,
+                    file_info.file_type
                 )
                 
                 all_invoice_lines.extend(invoice_lines)
@@ -189,12 +270,21 @@ async def process_upload(upload_id: str):
                 errors.append(error_msg)
                 logger.error(error_msg)
         
-        # Save invoice lines to Supabase
+        # Save invoice lines
         if all_invoice_lines:
             invoice_docs = [line.model_dump(mode='json') for line in all_invoice_lines]
-            # Sanitize float values to prevent JSON serialization errors
             invoice_docs = [safe_json_response(doc) for doc in invoice_docs]
             await invoice_lines_collection.insert_many(invoice_docs)
+        
+        # Detect document ranges for Table 13
+        range_detector = InvoiceRangeDetector()
+        document_ranges, non_sequential = range_detector.detect_ranges(
+            upload_id,
+            [line.model_dump() for line in all_invoice_lines]
+        )
+        
+        # Save document ranges (would need a new collection)
+        logger.info(f"Detected {len(document_ranges)} document ranges, {len(non_sequential)} non-sequential")
         
         # Update upload status
         status = UploadStatus.COMPLETED if not errors else UploadStatus.FAILED
@@ -202,11 +292,13 @@ async def process_upload(upload_id: str):
             upload_id,
             {
                 "status": status.value,
-                "processing_errors": errors
+                "processing_errors": errors,
+                "metadata.document_ranges_count": len(document_ranges),
+                "metadata.non_sequential_count": len(non_sequential)
             }
         )
         
-        logger.info(f"Processing completed for upload {upload_id}: {len(all_invoice_lines)} invoice lines")
+        logger.info(f"Processing completed: {upload_id}, {len(all_invoice_lines)} lines")
         
         return ProcessingResult(
             upload_id=upload_id,
@@ -217,34 +309,25 @@ async def process_upload(upload_id: str):
         
     except Exception as e:
         logger.error(f"Processing error: {str(e)}")
-        
-        # Update status to failed
         await uploads_collection.update(
             upload_id,
-            {
-                "status": UploadStatus.FAILED.value,
-                "processing_errors": [str(e)]
-            }
+            {"status": UploadStatus.FAILED.value, "processing_errors": [str(e)]}
         )
-        
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @api_router.post("/generate/{upload_id}")
-async def generate_gstr_json(upload_id: str):
+async def generate_gstr1_json(upload_id: str):
     """
-    Generate GSTR-1B and GSTR-3B JSON files
-    Enhanced with Gemini AI for validation and insights
+    Generate complete GSTR-1 JSON with all sections
     """
     try:
-        # Get upload record
         upload_doc = await uploads_collection.find_one(upload_id)
         if not upload_doc:
             raise HTTPException(status_code=404, detail="Upload not found")
         
         upload = Upload(**upload_doc)
         
-        # Check if processing is complete
         if upload.status != UploadStatus.COMPLETED:
             raise HTTPException(
                 status_code=400,
@@ -260,60 +343,36 @@ async def generate_gstr_json(upload_id: str):
         # Get metadata
         gstin = upload.metadata.get("gstin", "27AABCE1234F1Z5")
         filing_period = upload.metadata.get("filing_period", "012025")
+        seller_state_code = upload.metadata.get("seller_state_code", "27")
         
-        # Use new portal-compliant generator
-        portal_generator = PortalCompliantGSTRGenerator(
-            gstin=gstin, 
+        # Detect document ranges for Table 13
+        range_detector = InvoiceRangeDetector()
+        document_ranges, non_sequential = range_detector.detect_ranges(upload_id, invoice_lines)
+        
+        # Generate GSTR-1 using schema-driven generator
+        generator = SchemaDriverGSTR1Generator(
+            gstin=gstin,
             filing_period=filing_period,
-            eco_gstin="07AARCM9332R1CQ",
-            schema_version="GST3.1.6"
+            schema_version="3.1.6"
         )
         
-        # Generate portal-compliant GSTR-1B and GSTR-3B
-        gstr1b_json = portal_generator.generate_gstr1b(invoice_lines)
-        gstr3b_json = portal_generator.generate_gstr3b(invoice_lines)
+        gstr1_export = generator.generate_complete_gstr1(invoice_lines, document_ranges)
         
-        # Validate
-        warnings = portal_generator.validate_output(gstr1b_json, gstr3b_json)
+        # Save to database
+        export_dict = gstr1_export.model_dump(mode='json')
+        export_dict = safe_json_response(export_dict)
         
-        # Add validation note
-        warnings.append("✅ Using Portal-Compliant Generator V2 with enhanced validation")
+        await gstr_exports_collection.insert(export_dict)
         
-        # Save to Supabase
-        gstr1b_export = GSTRExport(
-            upload_id=upload_id,
-            export_type="GSTR1B",
-            json_data=gstr1b_json,
-            validation_warnings=warnings
-        )
+        logger.info(f"Generated GSTR-1 for upload {upload_id}")
         
-        gstr3b_export = GSTRExport(
-            upload_id=upload_id,
-            export_type="GSTR3B",
-            json_data=gstr3b_json,
-            validation_warnings=warnings
-        )
-        
-        # Save exports
-        gstr1b_dict = gstr1b_export.model_dump(mode='json')
-        gstr1b_dict = safe_json_response(gstr1b_dict)
-        await gstr_exports_collection.insert(gstr1b_dict)
-        
-        gstr3b_dict = gstr3b_export.model_dump(mode='json')
-        gstr3b_dict = safe_json_response(gstr3b_dict)
-        await gstr_exports_collection.insert(gstr3b_dict)
-        
-        logger.info(f"Generated portal-compliant GSTR JSON files for upload {upload_id}")
-        
-        response_data = {
+        return safe_json_response({
             "upload_id": upload_id,
-            "gstr1b": gstr1b_json,
-            "gstr3b": gstr3b_json,
-            "validation_warnings": warnings
-        }
-        
-        # Sanitize floats for JSON compatibility
-        return safe_json_response(response_data)
+            "gstr1": export_dict,
+            "validation_warnings": gstr1_export.validation_warnings,
+            "validation_errors": gstr1_export.validation_errors,
+            "reconciliation": gstr1_export.reconciliation_report
+        })
         
     except Exception as e:
         import traceback
@@ -322,55 +381,22 @@ async def generate_gstr_json(upload_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@api_router.get("/downloads/{upload_id}")
-async def get_downloads(upload_id: str):
+@api_router.get("/download/{upload_id}/gstr1")
+async def download_gstr1_file(upload_id: str):
     """
-    Get available downloads for an upload
+    Download GSTR-1 JSON file
     """
     try:
-        # Get exports
         exports = await gstr_exports_collection.find_by_upload(upload_id)
         
         if not exports:
-            raise HTTPException(status_code=404, detail="No exports found for this upload")
+            raise HTTPException(status_code=404, detail="No exports found")
         
-        return safe_json_response({
-            "upload_id": upload_id,
-            "exports": exports
-        })
-        
-    except Exception as e:
-        logger.error(f"Download error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@api_router.get("/download/{upload_id}/{file_type}")
-async def download_gstr_file(upload_id: str, file_type: str):
-    """
-    Download GSTR JSON file directly (triggers browser download)
-    file_type: 'gstr1b' or 'gstr3b'
-    """
-    try:
-        # Validate file type
-        if file_type.lower() not in ['gstr1b', 'gstr3b']:
-            raise HTTPException(status_code=400, detail="Invalid file type. Use 'gstr1b' or 'gstr3b'")
-        
-        # Get the GSTR data
-        export_type = "GSTR1B" if file_type.lower() == 'gstr1b' else "GSTR3B"
-        exports = await gstr_exports_collection.find_by_upload(upload_id)
-        
-        if not exports:
-            raise HTTPException(status_code=404, detail="No exports found for this upload")
-        
-        # Find the specific export
-        export_data = None
-        for export in exports:
-            if export.get('export_type') == export_type:
-                export_data = export.get('json_data')
-                break
+        # Get the GSTR-1 export (there should only be one now)
+        export_data = exports[0] if exports else None
         
         if not export_data:
-            raise HTTPException(status_code=404, detail=f"{export_type} not found for this upload")
+            raise HTTPException(status_code=404, detail="GSTR-1 not found")
         
         # Get filing period for filename
         upload_doc = await uploads_collection.find_one(upload_id)
@@ -380,12 +406,11 @@ async def download_gstr_file(upload_id: str, file_type: str):
         json_string = json.dumps(export_data, indent=2)
         
         # Create filename
-        filename = f"{export_type}_{filing_period}.json"
+        filename = f"GSTR1_{filing_period}.json"
         
         # Convert to bytes
         json_bytes = json_string.encode('utf-8')
         
-        # Return as streaming response with proper headers
         return StreamingResponse(
             BytesIO(json_bytes),
             media_type="application/json",
@@ -398,21 +423,17 @@ async def download_gstr_file(upload_id: str, file_type: str):
     except HTTPException:
         raise
     except Exception as e:
-        import traceback
-        logger.error(f"Download file error: {str(e)}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
+        logger.error(f"Download error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @api_router.get("/uploads")
 async def list_uploads():
-    """
-    List all uploads
-    """
+    """List all uploads"""
     try:
         uploads = await uploads_collection.find_all()
         
-        # Clean up file content from metadata for listing
+        # Clean up file content
         for upload in uploads:
             if "metadata" in upload:
                 upload["metadata"] = {
@@ -429,15 +450,13 @@ async def list_uploads():
 
 @api_router.get("/upload/{upload_id}")
 async def get_upload_details(upload_id: str):
-    """
-    Get upload details with processing status
-    """
+    """Get upload details"""
     try:
         upload_doc = await uploads_collection.find_one(upload_id)
         if not upload_doc:
             raise HTTPException(status_code=404, detail="Upload not found")
         
-        # Clean up file content from metadata
+        # Clean up file content
         if "metadata" in upload_doc:
             upload_doc["metadata"] = {
                 k: v for k, v in upload_doc["metadata"].items()
@@ -450,134 +469,68 @@ async def get_upload_details(upload_id: str):
         
         # Get exports
         exports = await gstr_exports_collection.find_by_upload(upload_id)
-        # Remove large json_data from list view
-        for export in exports:
-            if 'json_data' in export:
-                del export['json_data']
-        upload_doc["exports"] = exports
+        upload_doc["exports_count"] = len(exports)
         
         return safe_json_response(upload_doc)
         
     except Exception as e:
-        logger.error(f"Get upload details error: {str(e)}")
+        logger.error(f"Get upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @api_router.get("/preview/{upload_id}")
 async def get_preview_data(upload_id: str):
-    """
-    Get detailed preview data for review before download
-    Shows breakdown by state, rate, document types with audit trail
-    Enhanced with AI insights
-    """
+    """Get preview data with breakdowns"""
     try:
-        # Get upload record
         upload_doc = await uploads_collection.find_one(upload_id)
         if not upload_doc:
             raise HTTPException(status_code=404, detail="Upload not found")
         
-        # Get invoice lines
         invoice_lines = await invoice_lines_collection.find_by_upload(upload_id)
         
         if not invoice_lines:
             return safe_json_response({
                 "upload_id": upload_id,
                 "summary": {},
-                "breakdown": {},
-                "audit_log": []
+                "breakdown": {}
             })
         
-        # Categorize data
-        sales_lines = [l for l in invoice_lines if l.get("file_type") in ["tcs_sales", "tcs_sales_return"]]
-        invoice_docs = [l for l in invoice_lines if l.get("file_type") == "tax_invoice"]
+        # Calculate summary
+        from decimal_utils import parse_money
         
-        # Build state-wise breakdown
-        state_breakdown = {}
-        for line in sales_lines:
-            state_code = line.get("state_code", "Unknown")
-            gst_rate = line.get("gst_rate", 0)
-            key = f"{state_code}_{gst_rate}"
-            
-            if key not in state_breakdown:
-                state_breakdown[key] = {
-                    "state_code": state_code,
-                    "state_name": line.get("end_customer_state_new", "Unknown"),
-                    "gst_rate": gst_rate,
-                    "is_intra_state": line.get("is_intra_state", False),
-                    "count": 0,
-                    "taxable_value": 0,
-                    "cgst_amount": 0,
-                    "sgst_amount": 0,
-                    "igst_amount": 0,
-                    "tax_amount": 0
-                }
-            
-            state_breakdown[key]["count"] += 1
-            state_breakdown[key]["taxable_value"] += (line.get("taxable_value") or 0)
-            state_breakdown[key]["cgst_amount"] += (line.get("cgst_amount") or 0)
-            state_breakdown[key]["sgst_amount"] += (line.get("sgst_amount") or 0)
-            state_breakdown[key]["igst_amount"] += (line.get("igst_amount") or 0)
-            state_breakdown[key]["tax_amount"] += (line.get("tax_amount") or 0)
+        total_taxable = sum(parse_money(line.get("taxable_value", 0)) for line in invoice_lines)
+        total_cgst = sum(parse_money(line.get("computed_tax", {}).get("cgst_amount", 0)) for line in invoice_lines)
+        total_sgst = sum(parse_money(line.get("computed_tax", {}).get("sgst_amount", 0)) for line in invoice_lines)
+        total_igst = sum(parse_money(line.get("computed_tax", {}).get("igst_amount", 0)) for line in invoice_lines)
         
-        # Build document type breakdown
-        doc_type_breakdown = {}
-        for line in invoice_docs:
-            doc_type = line.get("invoice_type", "Invoice")
-            if doc_type not in doc_type_breakdown:
-                doc_type_breakdown[doc_type] = {
-                    "type": doc_type,
-                    "count": 0,
-                    "invoice_numbers": []
-                }
-            doc_type_breakdown[doc_type]["count"] += 1
-            doc_type_breakdown[doc_type]["invoice_numbers"].append(line.get("invoice_no"))
-        
-        # Calculate totals
-        total_taxable = sum((l.get("taxable_value") or 0) for l in sales_lines)
-        total_tax = sum((l.get("tax_amount") or 0) for l in sales_lines)
-        total_cgst = sum((l.get("cgst_amount") or 0) for l in sales_lines)
-        total_sgst = sum((l.get("sgst_amount") or 0) for l in sales_lines)
-        total_igst = sum((l.get("igst_amount") or 0) for l in sales_lines)
-        
-        # Audit log
-        audit_log = [
-            f"Processed {len(sales_lines)} sales transaction lines",
-            f"Processed {len(invoice_docs)} invoice document entries",
-            f"Total Taxable Value: ₹{total_taxable:.2f}",
-            f"Total Tax: ₹{total_tax:.2f} (CGST: ₹{total_cgst:.2f}, SGST: ₹{total_sgst:.2f}, IGST: ₹{total_igst:.2f})",
-            f"Unique states found: {len(set(l.get('state_code') for l in sales_lines if l.get('state_code')))}",
-            f"Unique GST rates: {sorted(set(l.get('gst_rate') for l in sales_lines if l.get('gst_rate') is not None))}",
-            f"Document types: {list(doc_type_breakdown.keys())}"
-        ]
+        # Group by section
+        section_counts = {}
+        for line in invoice_lines:
+            section = line.get("gstr_section", "unknown")
+            section_counts[section] = section_counts.get(section, 0) + 1
         
         return safe_json_response({
             "upload_id": upload_id,
             "summary": {
-                "total_transactions": len(sales_lines),
-                "total_documents": len(invoice_docs),
-                "total_taxable_value": round(total_taxable, 2),
-                "total_tax": round(total_tax, 2),
-                "total_cgst": round(total_cgst, 2),
-                "total_sgst": round(total_sgst, 2),
-                "total_igst": round(total_igst, 2),
-                "unique_states": len(set(l.get('state_code') for l in sales_lines if l.get('state_code'))),
-                "unique_rates": sorted(set(l.get('gst_rate') for l in sales_lines if l.get('gst_rate') is not None))
+                "total_lines": len(invoice_lines),
+                "total_taxable_value": float(total_taxable),
+                "total_cgst": float(total_cgst),
+                "total_sgst": float(total_sgst),
+                "total_igst": float(total_igst),
+                "total_tax": float(total_cgst + total_sgst + total_igst)
             },
-            "breakdown": {
-                "by_state_and_rate": list(state_breakdown.values()),
-                "by_document_type": list(doc_type_breakdown.values())
-            },
-            "audit_log": audit_log
+            "section_breakdown": section_counts
         })
         
     except Exception as e:
-        logger.error(f"Preview data error: {str(e)}")
+        logger.error(f"Preview error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# Include the router in the main app
+# Include router
 app.include_router(api_router)
 
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -588,5 +541,5 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info("GST Filing Automation API with AI - Starting up")
-    logger.info("Using Supabase for database and Gemini for AI insights")
+    logger.info("GST Filing Automation API - Schema-Driven GSTR-1 - Starting up")
+    logger.info("Features: Decimal Precision, Auto-Mapping, All GSTR-1 Sections")
