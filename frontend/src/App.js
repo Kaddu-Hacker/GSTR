@@ -285,7 +285,7 @@ function App() {
               </Badge>
               <Badge variant="outline" className="gap-1 border-blue-500/30 text-blue-300 bg-blue-950/30">
                 <Database className="w-3 h-3" />
-                MongoDB
+                Supabase
               </Badge>
               <Badge variant="outline" className="gap-1 border-green-500/30 text-green-300 bg-green-950/30">
                 <Zap className="w-3 h-3" />
