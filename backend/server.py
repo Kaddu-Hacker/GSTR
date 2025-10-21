@@ -80,12 +80,17 @@ async def upload_files(
     files: List[UploadFile] = File(...),
     seller_state_code: str = Query(default="27"),
     gstin: str = Query(default="27AABCE1234F1Z5"),
-    filing_period: str = Query(default="012025")
+    filing_period: str = Query(default="012025"),
+    current_user = Depends(get_current_user_optional)
 ):
     """
     Upload files with auto-detection and mapping suggestions
+    Uses Supabase Storage for file storage
     """
     try:
+        # Get user ID (use default if not authenticated for backward compatibility)
+        user_id = str(current_user.id) if current_user else "default_user"
+        
         upload = Upload(
             metadata={
                 "seller_state_code": seller_state_code,
@@ -97,10 +102,29 @@ async def upload_files(
         parser = EnhancedFileParser(seller_state_code=seller_state_code)
         all_files = []
         needs_mapping = False
+        storage_urls = {}
         
         # Process each uploaded file
         for file in files:
             content = await file.read()
+            
+            # Upload to Supabase Storage
+            content_type = file.content_type or "application/octet-stream"
+            storage_path = f"{upload.id}/{file.filename}"
+            
+            try:
+                storage_result = storage.upload_file(
+                    storage_path,
+                    content,
+                    user_id,
+                    content_type
+                )
+                storage_urls[file.filename] = storage_result
+                logger.info(f"Uploaded {file.filename} to storage: {storage_result['path']}")
+            except Exception as se:
+                logger.warning(f"Storage upload failed for {file.filename}: {str(se)}, falling back to database storage")
+                # Fallback to old method if storage fails
+                upload.metadata[f"file_content_{file.filename}"] = content.hex()
             
             # Check if ZIP
             if file.filename.lower().endswith('.zip'):
@@ -113,7 +137,7 @@ async def upload_files(
                     if file_info.needs_mapping:
                         needs_mapping = True
                     
-                    # Store content
+                    # Store extracted file content (in metadata as fallback)
                     upload.metadata[f"file_content_{filename}"] = file_content.hex()
             else:
                 file_info = parser.detect_and_classify_file(file.filename, content)
@@ -122,7 +146,9 @@ async def upload_files(
                 if file_info.needs_mapping:
                     needs_mapping = True
                 
-                upload.metadata[f"file_content_{file.filename}"] = content.hex()
+                # Store content in metadata as fallback
+                if file.filename not in storage_urls:
+                    upload.metadata[f"file_content_{file.filename}"] = content.hex()
         
         upload.files = all_files
         upload.status = UploadStatus.MAPPING if needs_mapping else UploadStatus.UPLOADED
@@ -131,10 +157,11 @@ async def upload_files(
         upload_dict = upload.model_dump(mode='json')
         upload_dict['upload_date'] = upload_dict['upload_date'].isoformat() if hasattr(upload_dict['upload_date'], 'isoformat') else upload_dict['upload_date']
         upload_dict['files'] = [f.model_dump(mode='json') for f in upload.files]
+        upload_dict['storage_urls'] = storage_urls
         
-        await uploads_collection.create(upload_dict)
+        await uploads_collection.create(upload_dict, user_id=user_id)
         
-        logger.info(f"Upload created: {upload.id}, {len(all_files)} files, needs_mapping={needs_mapping}")
+        logger.info(f"Upload created: {upload.id}, {len(all_files)} files, needs_mapping={needs_mapping}, user={user_id}")
         
         return UploadCreateResponse(
             upload_id=upload.id,
