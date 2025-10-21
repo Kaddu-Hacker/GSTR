@@ -597,57 +597,44 @@ function App() {
           </Card>
         )}
 
-        {/* Preview Data */}
+        {/* Preview Data - GSTR-1 Sections */}
         {previewData && previewData.summary && (
           <Card className="mb-6 shadow-2xl border border-gray-800 bg-gray-900/50 backdrop-blur">
             <CardHeader className="bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border-b border-gray-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg sm:text-xl text-gray-100">Data Summary</CardTitle>
-                  <CardDescription className="text-gray-400">Overview of processed transactions</CardDescription>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowPreview(!showPreview)}
-                  className="text-gray-400 hover:text-gray-200"
-                >
-                  {showPreview ? <ChevronUp /> : <ChevronDown />}
-                </Button>
-              </div>
+              <CardTitle className="text-lg sm:text-xl text-gray-100">Data Summary</CardTitle>
+              <CardDescription className="text-gray-400">Overview of processed transactions</CardDescription>
             </CardHeader>
-            {showPreview && (
-              <CardContent className="pt-6">
-                {/* Summary Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                  <div className="p-4 bg-gradient-to-br from-purple-900/50 to-purple-800/30 rounded-lg border border-purple-700/30">
-                    <p className="text-xs sm:text-sm text-purple-300 font-medium">Transactions</p>
-                    <p className="text-xl sm:text-2xl font-bold text-purple-100">{previewData.summary.total_transactions}</p>
-                  </div>
-                  <div className="p-4 bg-gradient-to-br from-blue-900/50 to-blue-800/30 rounded-lg border border-blue-700/30">
-                    <p className="text-xs sm:text-sm text-blue-300 font-medium">Taxable Value</p>
-                    <p className="text-xl sm:text-2xl font-bold text-blue-100">₹{previewData.summary.total_taxable_value?.toLocaleString()}</p>
-                  </div>
-                  <div className="p-4 bg-gradient-to-br from-green-900/50 to-green-800/30 rounded-lg border border-green-700/30">
-                    <p className="text-xs sm:text-sm text-green-300 font-medium">Total Tax</p>
-                    <p className="text-xl sm:text-2xl font-bold text-green-100">₹{previewData.summary.total_tax?.toLocaleString()}</p>
-                  </div>
-                  <div className="p-4 bg-gradient-to-br from-orange-900/50 to-orange-800/30 rounded-lg border border-orange-700/30">
-                    <p className="text-xs sm:text-sm text-orange-300 font-medium">States</p>
-                    <p className="text-xl sm:text-2xl font-bold text-orange-100">{previewData.summary.unique_states}</p>
-                  </div>
+            <CardContent className="pt-6">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="p-4 bg-gradient-to-br from-purple-900/50 to-purple-800/30 rounded-lg border border-purple-700/30">
+                  <p className="text-xs sm:text-sm text-purple-300 font-medium">Total Lines</p>
+                  <p className="text-xl sm:text-2xl font-bold text-purple-100">{previewData.summary.total_lines}</p>
                 </div>
+                <div className="p-4 bg-gradient-to-br from-blue-900/50 to-blue-800/30 rounded-lg border border-blue-700/30">
+                  <p className="text-xs sm:text-sm text-blue-300 font-medium">Taxable Value</p>
+                  <p className="text-xl sm:text-2xl font-bold text-blue-100">₹{previewData.summary.total_taxable_value?.toFixed(2)}</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-green-900/50 to-green-800/30 rounded-lg border border-green-700/30">
+                  <p className="text-xs sm:text-sm text-green-300 font-medium">Total Tax</p>
+                  <p className="text-xl sm:text-2xl font-bold text-green-100">₹{previewData.summary.total_tax?.toFixed(2)}</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-orange-900/50 to-orange-800/30 rounded-lg border border-orange-700/30">
+                  <p className="text-xs sm:text-sm text-orange-300 font-medium">CGST</p>
+                  <p className="text-xl sm:text-2xl font-bold text-orange-100">₹{previewData.summary.total_cgst?.toFixed(2)}</p>
+                </div>
+              </div>
 
-                {/* AI Insights */}
-                {aiInsights && aiInsights.key_insights && (
-                  <div className="mb-6 p-4 bg-gradient-to-r from-purple-950/50 to-blue-950/50 rounded-lg border border-purple-700/30">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Sparkles className="w-5 h-5 text-purple-400" />
-                      <h3 className="font-semibold text-purple-200">AI Insights</h3>
-                    </div>
-                    <ul className="space-y-2">
-                      {aiInsights.key_insights.map((insight, index) => (
-                        <li key={index} className="text-sm text-purple-300 flex items-start gap-2">
+              {/* GSTR-1 Sections Breakdown */}
+              {previewData.section_breakdown && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-sm text-gray-300 mb-3">GSTR-1 Sections Breakdown</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {Object.entries(previewData.section_breakdown).map(([section, count]) => (
+                      <div key={section} className="p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                        <p className="text-xs text-gray-500 uppercase mb-1">{section}</p>
+                        <p className="text-lg font-bold text-gray-200">{count} entries</p>
+                      </div>
                           <span className="text-purple-400 mt-1">•</span>
                           <span>{insight}</span>
                         </li>
