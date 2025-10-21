@@ -465,6 +465,9 @@ function App() {
           </CardContent>
         </Card>
 
+        {/* In-Content Ad 1 */}
+        <AdSpace adSlot="inContent1" className="w-full mb-6" />
+
         {/* Upload Details */}
         {uploadDetails && uploadDetails.files && (
           <Card className="mb-6 shadow-2xl border border-gray-800 bg-gray-900/50 backdrop-blur">
