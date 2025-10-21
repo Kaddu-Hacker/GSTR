@@ -88,8 +88,8 @@ async def upload_files(
     Uses Supabase Storage for file storage
     """
     try:
-        # Get user ID (use default if not authenticated for backward compatibility)
-        user_id = str(current_user.id) if current_user else "default_user"
+        # Get user ID (use default UUID if not authenticated for backward compatibility)
+        user_id = str(current_user.id) if current_user else "00000000-0000-0000-0000-000000000001"
         
         upload = Upload(
             metadata={
