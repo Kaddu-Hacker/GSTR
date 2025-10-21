@@ -36,6 +36,7 @@ from models_canonical import (
 from parser_enhanced import EnhancedFileParser
 from gstr1_generator_schema_driven import SchemaDriverGSTR1Generator
 from gstr1_complete_generator import CompleteGSTR1Generator
+from gstr1_gemini_complete_generator import GeminiGSTR1Generator
 from invoice_range_detector import InvoiceRangeDetector
 from auto_mapper import HeaderMatcher, create_meesho_mapping_template
 from gemini_service import gemini_service
