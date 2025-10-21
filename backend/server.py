@@ -362,9 +362,10 @@ async def process_upload(upload_id: str):
 
 
 @api_router.post("/generate/{upload_id}")
-async def generate_gstr1_json(upload_id: str):
+async def generate_gstr1_json(upload_id: str, use_gemini: bool = True):
     """
-    Generate complete GSTR-1 JSON with all sections
+    Generate complete GSTR-1 JSON with ALL tables using Gemini AI
+    Includes: B2B, B2CL, B2CS (Table 7), CDNR, CDNUR, EXP, EXPWOP, AT, ATADJ, HSN (Table 12), DOC_ISS (Table 13), NIL, and more
     """
     try:
         upload_doc = await uploads_collection.find_one(upload_id)
@@ -390,34 +391,62 @@ async def generate_gstr1_json(upload_id: str):
         filing_period = upload.metadata.get("filing_period", "012025")
         seller_state_code = upload.metadata.get("seller_state_code", "27")
         
+        logger.info(f"Generating GSTR-1 with Gemini AI for {len(invoice_lines)} invoice lines")
+        
+        # Use Gemini to analyze data before generation
+        if use_gemini:
+            gemini_insights = gemini_service.generate_filing_insights(invoice_lines)
+            logger.info(f"Gemini insights: {gemini_insights.get('key_insights', [])}")
+        
         # Detect document ranges for Table 13
         range_detector = InvoiceRangeDetector()
         document_ranges, non_sequential = range_detector.detect_ranges(upload_id, invoice_lines)
         
-        # Generate GSTR-1 using schema-driven generator
-        generator = SchemaDriverGSTR1Generator(
+        # Use Gemini to detect missing invoices
+        if use_gemini and document_ranges:
+            all_invoice_numbers = [line.get("invoice_no_raw", "") for line in invoice_lines if line.get("invoice_no_raw")]
+            gemini_missing = gemini_service.detect_missing_invoices(all_invoice_numbers)
+            logger.info(f"Gemini detected {len(gemini_missing.get('missing_invoices', []))} potentially missing invoices")
+        
+        # Generate complete GSTR-1 with ALL tables using new generator
+        complete_generator = CompleteGSTR1Generator(
             gstin=gstin,
             filing_period=filing_period,
-            schema_version="3.1.6"
+            seller_state_code=seller_state_code
         )
         
-        gstr1_export = generator.generate_complete_gstr1(invoice_lines, document_ranges)
+        gstr1_complete = complete_generator.generate_complete_gstr1(
+            invoice_lines, 
+            document_ranges,
+            use_gemini=use_gemini
+        )
         
         # Save to database
         user_id = upload_doc.get('user_id', 'default_user')
-        export_dict = gstr1_export.model_dump(mode='json')
-        export_dict = safe_json_response(export_dict)
+        export_dict = {
+            "id": str(uuid.uuid4()),
+            "upload_id": upload_id,
+            "gstin": gstin,
+            "fp": filing_period,
+            "gstr1_data": gstr1_complete,
+            "export_date": datetime.now(timezone.utc).isoformat(),
+            "gemini_insights": gemini_insights if use_gemini else {},
+            "sections_count": len([k for k, v in gstr1_complete.items() if v and k not in ["gstin", "fp", "gt", "cur_gt", "_validation"]])
+        }
         
+        export_dict = safe_json_response(export_dict)
         await gstr_exports_collection.insert(export_dict, user_id=user_id)
         
-        logger.info(f"Generated GSTR-1 for upload {upload_id}")
+        logger.info(f"Generated complete GSTR-1 for upload {upload_id} with {export_dict['sections_count']} sections")
         
         return safe_json_response({
             "upload_id": upload_id,
-            "gstr1": export_dict,
-            "validation_warnings": gstr1_export.validation_warnings,
-            "validation_errors": gstr1_export.validation_errors,
-            "reconciliation": gstr1_export.reconciliation_report
+            "gstr1": gstr1_complete,
+            "sections_generated": [k for k, v in gstr1_complete.items() if v and k not in ["gstin", "fp", "gt", "cur_gt", "_validation"]],
+            "validation": gstr1_complete.get("_validation", {}),
+            "gemini_insights": gemini_insights if use_gemini else {},
+            "document_ranges_count": len(document_ranges),
+            "non_sequential_count": len(non_sequential)
         })
         
     except Exception as e:
