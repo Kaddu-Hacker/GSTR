@@ -21,6 +21,7 @@ from models import (
 )
 from parser import FileParser
 from gstr_generator import GSTRGenerator
+from gstr_generator_v2 import PortalCompliantGSTRGenerator  # New portal-compliant generator
 from supabase_client import uploads_collection, invoice_lines_collection, gstr_exports_collection
 from gemini_service import gemini_service
 from json_utils import safe_json_response
