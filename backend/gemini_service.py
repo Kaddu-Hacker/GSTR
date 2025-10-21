@@ -24,7 +24,191 @@ logger = logging.getLogger(__name__)
 
 
 class GeminiService:
-    """AI-powered service for GST filing enhancements"""
+    """AI-powered service for GST filing enhancements - COMPREHENSIVE"""
+    
+    @staticmethod
+    def suggest_gstr_section(invoice_data: Dict) -> Dict:
+        """
+        Use Gemini to intelligently suggest which GSTR-1 section an invoice belongs to
+        """
+        try:
+            prompt = f"""
+Analyze this invoice data and determine which GSTR-1 section it belongs to:
+
+Invoice Data:
+- Has GSTIN: {bool(invoice_data.get('gstin_uin'))}
+- GSTIN Length: {len(str(invoice_data.get('gstin_uin', '')))}
+- Taxable Value: ₹{invoice_data.get('taxable_value', 0)}
+- Document Type: {invoice_data.get('doc_type', 'unknown')}
+- Is Export: {invoice_data.get('is_export', False)}
+- Is Advance: {invoice_data.get('is_advance', False)}
+- GST Rate: {invoice_data.get('gst_rate', 0)}%
+
+GSTR-1 Sections:
+- B2B: Registered buyers (GSTIN = 15 chars)
+- B2CL: Unregistered, invoice > 2.5L
+- B2CS: Unregistered, invoice <= 2.5L (Table 7)
+- CDNR: Credit/Debit notes for registered
+- CDNUR: Credit/Debit notes for unregistered
+- EXP: Export invoices
+- AT: Advances received
+- ATADJ: Advance adjustments
+- HSN: HSN summary (Table 12)
+- NIL: Nil-rated/exempted
+
+Which section? Return JSON:
+{{
+    "section": "...",
+    "table_number": "...",
+    "confidence": "high/medium/low",
+    "reason": "..."
+}}
+"""
+            
+            response = model.generate_content(prompt)
+            response_text = response.text.strip()
+            
+            if response_text.startswith('```'):
+                response_text = response_text.split('```')[1]
+                if response_text.startswith('json'):
+                    response_text = response_text[4:]
+                response_text = response_text.strip()
+            
+            return json.loads(response_text)
+        except Exception as e:
+            logger.error(f"Gemini section suggestion error: {str(e)}")
+            return {"section": "unknown", "confidence": "low", "error": str(e)}
+    
+    @staticmethod
+    def validate_hsn_code(hsn_code: str, description: str = "") -> Dict:
+        """
+        Use Gemini to validate HSN code and suggest corrections
+        """
+        try:
+            prompt = f"""
+Validate this HSN code for GST filing in India:
+
+HSN Code: {hsn_code}
+Description: {description}
+
+Is this a valid HSN code? HSN codes in India are typically 4, 6, or 8 digits.
+If invalid, suggest the correct code.
+
+Return JSON:
+{{
+    "is_valid": true/false,
+    "suggested_hsn": "...",
+    "confidence": "high/medium/low",
+    "reason": "..."
+}}
+"""
+            
+            response = model.generate_content(prompt)
+            response_text = response.text.strip()
+            
+            if response_text.startswith('```'):
+                response_text = response_text.split('```')[1]
+                if response_text.startswith('json'):
+                    response_text = response_text[4:]
+                response_text = response_text.strip()
+            
+            return json.loads(response_text)
+        except Exception as e:
+            logger.error(f"Gemini HSN validation error: {str(e)}")
+            return {"is_valid": True, "confidence": "low", "error": str(e)}
+    
+    @staticmethod
+    def suggest_missing_fields(invoice_data: Dict) -> Dict:
+        """
+        Use Gemini to identify missing or incorrect fields in invoice data
+        """
+        try:
+            prompt = f"""
+Review this invoice data for GST filing and identify missing or problematic fields:
+
+Invoice Data:
+{json.dumps(invoice_data, indent=2)[:1000]}
+
+Common required fields:
+- invoice_no, invoice_date
+- gstin_uin (for B2B)
+- place_of_supply
+- taxable_value, gst_rate
+- tax amounts (CGST, SGST, IGST)
+
+Identify:
+1. Missing required fields
+2. Invalid data formats
+3. Calculation errors
+4. Recommended corrections
+
+Return JSON:
+{{
+    "missing_fields": ["field1", "field2"],
+    "invalid_fields": {{"field": "reason"}},
+    "calculation_issues": ["issue1"],
+    "recommendations": ["rec1", "rec2"],
+    "severity": "high/medium/low"
+}}
+"""
+            
+            response = model.generate_content(prompt)
+            response_text = response.text.strip()
+            
+            if response_text.startswith('```'):
+                response_text = response_text.split('```')[1]
+                if response_text.startswith('json'):
+                    response_text = response_text[4:]
+                response_text = response_text.strip()
+            
+            return json.loads(response_text)
+        except Exception as e:
+            logger.error(f"Gemini missing fields error: {str(e)}")
+            return {"missing_fields": [], "recommendations": [], "error": str(e)}
+    
+    @staticmethod
+    def validate_place_of_supply(state_name: str, state_code: str) -> Dict:
+        """
+        Use Gemini to validate place of supply mapping
+        """
+        try:
+            prompt = f"""
+Validate this Place of Supply for GST filing in India:
+
+State Name: {state_name}
+State Code: {state_code}
+
+Is this mapping correct? State codes in India are 2-digit numbers (01-37).
+
+Common states:
+- Maharashtra: 27
+- Karnataka: 29
+- Tamil Nadu: 33
+- Delhi: 07
+- Gujarat: 24
+
+Return JSON:
+{{
+    "is_correct": true/false,
+    "suggested_code": "...",
+    "suggested_name": "...",
+    "confidence": "high/medium/low"
+}}
+"""
+            
+            response = model.generate_content(prompt)
+            response_text = response.text.strip()
+            
+            if response_text.startswith('```'):
+                response_text = response_text.split('```')[1]
+                if response_text.startswith('json'):
+                    response_text = response_text[4:]
+                response_text = response_text.strip()
+            
+            return json.loads(response_text)
+        except Exception as e:
+            logger.error(f"Gemini POS validation error: {str(e)}")
+            return {"is_correct": True, "confidence": "low", "error": str(e)}
     
     @staticmethod
     def detect_missing_invoices(invoice_numbers: List[str]) -> Dict:
